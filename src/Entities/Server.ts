@@ -1,7 +1,8 @@
 import { Field, ID, ObjectType } from 'type-graphql'
-import { BaseEntity, Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
+import { BaseEntity, Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
 import 'reflect-metadata'
 import { GlobalUser } from './GlobalUser'
+import { Channel } from './Channel'
 @ObjectType()
 @Entity()
 export class Server extends BaseEntity {
@@ -19,4 +20,7 @@ export class Server extends BaseEntity {
 
   @ManyToOne(() => GlobalUser, user => user.servers)
   owner: GlobalUser
+
+  @OneToMany(() => Channel, channel => channel.server)
+  channels: Channel[]
 }

@@ -42,6 +42,10 @@ __decorate([
 ], GlobalUser.prototype, "lastName", void 0);
 __decorate([
     (0, type_graphql_1.Field)(),
+    __metadata("design:type", String)
+], GlobalUser.prototype, "connectedServerId", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(),
     (0, typeorm_1.Column)({ nullable: false, unique: true }),
     __metadata("design:type", String)
 ], GlobalUser.prototype, "globalUserId", void 0);

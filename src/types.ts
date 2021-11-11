@@ -9,7 +9,7 @@ declare module 'express-session' {
 }
 
 export type MyContext = {
-  req: Request & { session: Session & { userId: string } }
+  req: Request & { session: Session & { userId: string; connectedServerId: string } }
   redis: Redis
   res: Response
 }

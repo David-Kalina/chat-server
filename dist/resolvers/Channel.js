@@ -15,58 +15,45 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ServerResolver = void 0;
+exports.ChannelResolver = void 0;
+const isAuth_1 = require("../middleware/isAuth");
+const isConnectedToServer_1 = require("../middleware/isConnectedToServer");
 const type_graphql_1 = require("type-graphql");
-const Server_1 = require("../Entities/Server");
 const uniqid_1 = __importDefault(require("uniqid"));
-const Server_2 = require("../inputTypes/Server");
-const GlobalUser_1 = require("../Entities/GlobalUser");
-let ServerResolver = class ServerResolver {
-    async servers() {
-        return await Server_1.Server.find();
+const Channel_1 = require("../Entities/Channel");
+const Server_1 = require("../Entities/Server");
+const Channel_2 = require("../inputTypes/Channel");
+let ChannelResolver = class ChannelResolver {
+    async channels() {
+        return await Channel_1.Channel.find();
     }
-    async connectToServer(serverId, { req }) {
+    async createChannel(options, { req }) {
+        const serverId = req.session.connectedServerId;
         const server = await Server_1.Server.findOne({ where: { serverId } });
         if (!server) {
             throw new Error('Server not found');
         }
-        req.session.connectedServerId = server.serverId;
-        return server.serverId;
-    }
-    async createServer(options, { req }) {
-        const owner = await GlobalUser_1.GlobalUser.findOne(req.session.userId);
-        if (!owner) {
-            throw new Error('User not found');
-        }
-        const server = await Server_1.Server.create(Object.assign(Object.assign({}, options), { serverId: (0, uniqid_1.default)('s-'), owner })).save();
-        req.session.connectedServerId = server.serverId;
-        return server;
+        const channel = await Channel_1.Channel.create(Object.assign(Object.assign({}, options), { channelId: (0, uniqid_1.default)('c-'), server })).save();
+        return channel;
     }
 };
 __decorate([
-    (0, type_graphql_1.Query)(() => [Server_1.Server]),
+    (0, type_graphql_1.Query)(() => [Channel_1.Channel]),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
-], ServerResolver.prototype, "servers", null);
+], ChannelResolver.prototype, "channels", null);
 __decorate([
-    (0, type_graphql_1.Mutation)(() => String),
-    __param(0, (0, type_graphql_1.Arg)('serverId')),
-    __param(1, (0, type_graphql_1.Ctx)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
-    __metadata("design:returntype", Promise)
-], ServerResolver.prototype, "connectToServer", null);
-__decorate([
-    (0, type_graphql_1.Mutation)(() => Server_1.Server),
+    (0, type_graphql_1.Mutation)(() => Channel_1.Channel),
+    (0, type_graphql_1.UseMiddleware)([isAuth_1.isAuth, isConnectedToServer_1.isConnectedToServer]),
     __param(0, (0, type_graphql_1.Arg)('options')),
     __param(1, (0, type_graphql_1.Ctx)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Server_2.CreateServerInput, Object]),
+    __metadata("design:paramtypes", [Channel_2.CreateChannelInput, Object]),
     __metadata("design:returntype", Promise)
-], ServerResolver.prototype, "createServer", null);
-ServerResolver = __decorate([
-    (0, type_graphql_1.Resolver)(Server_1.Server)
-], ServerResolver);
-exports.ServerResolver = ServerResolver;
-//# sourceMappingURL=Server.js.map
+], ChannelResolver.prototype, "createChannel", null);
+ChannelResolver = __decorate([
+    (0, type_graphql_1.Resolver)(Channel_1.Channel)
+], ChannelResolver);
+exports.ChannelResolver = ChannelResolver;
+//# sourceMappingURL=Channel.js.map

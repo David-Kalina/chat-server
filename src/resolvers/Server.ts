@@ -12,6 +12,19 @@ export class ServerResolver {
     return await Server.find()
   }
 
+  @Mutation(() => String)
+  async connectToServer(
+    @Arg('serverId') serverId: string,
+    @Ctx() { req }: MyContext
+  ): Promise<String> {
+    const server = await Server.findOne({ where: { serverId } })
+    if (!server) {
+      throw new Error('Server not found')
+    }
+    req.session.connectedServerId = server.serverId
+    return server.serverId
+  }
+
   @Mutation(() => Server)
   async createServer(
     @Arg('options') options: CreateServerInput,
@@ -28,6 +41,8 @@ export class ServerResolver {
       serverId: uniqid('s-'),
       owner,
     }).save()
+
+    req.session.connectedServerId = server.serverId
 
     return server
   }

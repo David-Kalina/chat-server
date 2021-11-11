@@ -1,6 +1,7 @@
 import { Field, ID, ObjectType } from 'type-graphql'
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
+import { BaseEntity, Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
 import 'reflect-metadata'
+import { Server } from './Server'
 @ObjectType()
 @Entity()
 export class Channel extends BaseEntity {
@@ -9,7 +10,11 @@ export class Channel extends BaseEntity {
   id: string
 
   @Field()
-  @Column('uuid')
+  @Column()
+  channelId: string
+
+  @Field()
+  @Column()
   serverId: string
 
   @Field()
@@ -19,4 +24,7 @@ export class Channel extends BaseEntity {
   @Field()
   @Column({ length: 500 })
   description: string
+
+  @ManyToOne(() => Server, server => server.channels)
+  server: Server
 }

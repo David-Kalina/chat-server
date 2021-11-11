@@ -25,6 +25,9 @@ export class GlobalUser extends BaseEntity {
   lastName: string
 
   @Field()
+  connectedServerId: string
+
+  @Field()
   @Column({ nullable: false, unique: true })
   globalUserId: string
 
