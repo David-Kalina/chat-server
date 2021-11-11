@@ -24,8 +24,29 @@ const Channel_1 = require("../Entities/Channel");
 const Server_1 = require("../Entities/Server");
 const Channel_2 = require("../inputTypes/Channel");
 let ChannelResolver = class ChannelResolver {
-    async channels() {
-        return await Channel_1.Channel.find();
+    async channels(serverReferenceId) {
+        try {
+            return await Channel_1.Channel.find({ where: { serverReferenceId } });
+        }
+        catch (error) {
+            return error;
+        }
+    }
+    async channel(channelId) {
+        try {
+            return await Channel_1.Channel.findOne({ where: { channelId } });
+        }
+        catch (error) {
+            return error;
+        }
+    }
+    async connectToChannel(channelId, { req }) {
+        const channel = await Channel_1.Channel.findOne({ where: { channelId } });
+        if (!channel) {
+            throw new Error('Channel not found');
+        }
+        req.session.connectedChannelId = channel.channelId;
+        return channel.channelId;
     }
     async createChannel(options, { req }) {
         const serverId = req.session.connectedServerId;
@@ -33,16 +54,33 @@ let ChannelResolver = class ChannelResolver {
         if (!server) {
             throw new Error('Server not found');
         }
-        const channel = await Channel_1.Channel.create(Object.assign(Object.assign({}, options), { channelId: (0, uniqid_1.default)('c-'), server })).save();
+        const channel = await Channel_1.Channel.create(Object.assign(Object.assign({}, options), { channelId: (0, uniqid_1.default)('c-'), serverReferenceId: server.serverId, server })).save();
         return channel;
     }
 };
 __decorate([
     (0, type_graphql_1.Query)(() => [Channel_1.Channel]),
+    (0, type_graphql_1.UseMiddleware)([isAuth_1.isAuth, isConnectedToServer_1.isConnectedToServer]),
+    __param(0, (0, type_graphql_1.Arg)('serverReferenceId')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], ChannelResolver.prototype, "channels", null);
+__decorate([
+    (0, type_graphql_1.Query)(() => Channel_1.Channel),
+    __param(0, (0, type_graphql_1.Arg)('channelId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], ChannelResolver.prototype, "channel", null);
+__decorate([
+    (0, type_graphql_1.Mutation)(() => String),
+    __param(0, (0, type_graphql_1.Arg)('channelId')),
+    __param(1, (0, type_graphql_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], ChannelResolver.prototype, "connectToChannel", null);
 __decorate([
     (0, type_graphql_1.Mutation)(() => Channel_1.Channel),
     (0, type_graphql_1.UseMiddleware)([isAuth_1.isAuth, isConnectedToServer_1.isConnectedToServer]),

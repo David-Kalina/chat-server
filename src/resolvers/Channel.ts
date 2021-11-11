@@ -10,8 +10,35 @@ import { MyContext } from '../types'
 @Resolver(Channel)
 export class ChannelResolver {
   @Query(() => [Channel])
-  async channels() {
-    return await Channel.find()
+  @UseMiddleware([isAuth, isConnectedToServer])
+  async channels(@Arg('serverReferenceId') serverReferenceId: string) {
+    try {
+      return await Channel.find({ where: { serverReferenceId } })
+    } catch (error) {
+      return error
+    }
+  }
+
+  @Query(() => Channel)
+  async channel(@Arg('channelId') channelId: string) {
+    try {
+      return await Channel.findOne({ where: { channelId } })
+    } catch (error) {
+      return error
+    }
+  }
+
+  @Mutation(() => String)
+  async connectToChannel(
+    @Arg('channelId') channelId: string,
+    @Ctx() { req }: MyContext
+  ): Promise<String> {
+    const channel = await Channel.findOne({ where: { channelId } })
+    if (!channel) {
+      throw new Error('Channel not found')
+    }
+    req.session.connectedChannelId = channel.channelId
+    return channel.channelId
   }
 
   @Mutation(() => Channel)
@@ -31,6 +58,7 @@ export class ChannelResolver {
     const channel = await Channel.create({
       ...options,
       channelId: uniqid('c-'),
+      serverReferenceId: server.serverId,
       server,
     }).save()
 

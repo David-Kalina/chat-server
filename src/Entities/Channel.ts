@@ -15,7 +15,7 @@ export class Channel extends BaseEntity {
 
   @Field()
   @Column()
-  serverId: string
+  serverReferenceId: string
 
   @Field()
   @Column({ length: 255 })

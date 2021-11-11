@@ -30,7 +30,7 @@ __decorate([
     (0, type_graphql_1.Field)(),
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
-], Channel.prototype, "serverId", void 0);
+], Channel.prototype, "serverReferenceId", void 0);
 __decorate([
     (0, type_graphql_1.Field)(),
     (0, typeorm_1.Column)({ length: 255 }),
