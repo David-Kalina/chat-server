@@ -4,6 +4,7 @@ import uniqid from 'uniqid'
 import { CreateServerInput } from '../inputTypes/Server'
 import { MyContext } from '../types'
 import { GlobalUser } from '../Entities/GlobalUser'
+import { Channel } from '../Entities/Channel'
 
 @Resolver(Server)
 export class ServerResolver {
@@ -40,6 +41,14 @@ export class ServerResolver {
       ...options,
       serverId: uniqid('s-'),
       owner,
+    }).save()
+
+    await Channel.create({
+      name: 'general',
+      description: 'General channel',
+      server,
+      channelId: uniqid('c-'),
+      serverReferenceId: server.serverId,
     }).save()
 
     req.session.connectedServerId = server.serverId

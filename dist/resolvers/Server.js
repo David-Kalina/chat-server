@@ -21,6 +21,7 @@ const Server_1 = require("../Entities/Server");
 const uniqid_1 = __importDefault(require("uniqid"));
 const Server_2 = require("../inputTypes/Server");
 const GlobalUser_1 = require("../Entities/GlobalUser");
+const Channel_1 = require("../Entities/Channel");
 let ServerResolver = class ServerResolver {
     async servers() {
         return await Server_1.Server.find();
@@ -39,6 +40,13 @@ let ServerResolver = class ServerResolver {
             throw new Error('User not found');
         }
         const server = await Server_1.Server.create(Object.assign(Object.assign({}, options), { serverId: (0, uniqid_1.default)('s-'), owner })).save();
+        await Channel_1.Channel.create({
+            name: 'general',
+            description: 'General channel',
+            server,
+            channelId: (0, uniqid_1.default)('c-'),
+            serverReferenceId: server.serverId,
+        }).save();
         req.session.connectedServerId = server.serverId;
         return server;
     }
