@@ -73,7 +73,7 @@ export class ChannelResolver {
     const channel = await Channel.create({
       ...options,
       channelId: uniqid('c-'),
-      serverReferenceId: server.serverId,
+      serverReferenceId: server.serverReferenceId,
       server,
     }).save()
 

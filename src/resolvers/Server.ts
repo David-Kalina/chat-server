@@ -16,22 +16,34 @@ export class ServerResolver {
   async servers(@Ctx() { req }: MyContext): Promise<Server[]> {
     const entityManager = getManager()
 
-    const servers = await entityManager.find(Server, {
-      where: {
-        owner: {
-          id: req.session.userId,
-        },
-      },
-      relations: ['owner'],
-    })
+    // ! User query builder to find and filter servers by user
+
+    // const servers = await entityManager.find(Server, {
+    //   relations: ['users'],
+    //   where: {
+    //     users: {
+    //       some: {
+    //         globalId: req.session.userId,
+    //       },
+    //     },
+    //   },
+    // })
+
+    console.log()
+
+    const servers = entityManager
+      .createQueryBuilder(Server, 'server')
+      .leftJoinAndSelect('server.users', 'users')
+      .where('users."globalUserReferenceId" = :userId', { userId: req.session.userId })
+      .getMany()
 
     return servers
   }
 
   @Query(() => Server)
   @UseMiddleware([isAuth])
-  async server(@Arg('serverId') serverId: string): Promise<Server> {
-    const server = await Server.findOne({ where: { serverId } })
+  async server(@Arg('serverReferenceId') serverReferenceId: string): Promise<Server> {
+    const server = await Server.findOne({ where: { serverReferenceId } })
 
     if (!server) {
       throw new Error('Server not found')
@@ -42,15 +54,18 @@ export class ServerResolver {
 
   @Mutation(() => Boolean)
   @UseMiddleware([isAuth])
-  async joinServer(@Arg('serverId') serverId: string, @Ctx() { req }: MyContext): Promise<Boolean> {
+  async joinServer(
+    @Arg('serverReferenceId') serverReferenceId: string,
+    @Ctx() { req }: MyContext
+  ): Promise<Boolean> {
     try {
-      const user = await GlobalUser.findOne(req.session.userId)
+      const user = await GlobalUser.findOne({ where: { globalUserId: req.session.userId } })
 
       if (!user) {
         throw new Error('User not found')
       }
 
-      const server = await Server.findOne({ where: { serverId } })
+      const server = await Server.findOne({ where: { serverReferenceId } })
 
       if (!server) {
         throw new Error('Server not found')
@@ -59,7 +74,7 @@ export class ServerResolver {
       await LocalUser.create({
         localId: uniqid('l-'),
         globalUser: user,
-        globalId: user.id,
+        globalUserReferenceId: user.globalUserId,
         server,
         serverReferenceId: server.serverReferenceId,
       }).save()
@@ -91,7 +106,7 @@ export class ServerResolver {
     @Arg('options') options: CreateServerInput,
     @Ctx() { req }: MyContext
   ): Promise<Server> {
-    const owner = await GlobalUser.findOne(req.session.userId)
+    const owner = await GlobalUser.findOne({ where: { globalUserId: req.session.userId } })
 
     if (!owner) {
       throw new Error('User not found')
@@ -106,7 +121,7 @@ export class ServerResolver {
     await LocalUser.create({
       localId: uniqid('l-'),
       globalUser: owner,
-      globalId: owner.id,
+      globalUserReferenceId: owner.globalUserId,
       server,
       serverReferenceId: server.serverReferenceId,
     }).save()

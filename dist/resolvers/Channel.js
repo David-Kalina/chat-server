@@ -57,7 +57,7 @@ let ChannelResolver = class ChannelResolver {
         if (!server) {
             throw new Error('Server not found');
         }
-        const channel = await Channel_1.Channel.create(Object.assign(Object.assign({}, options), { channelId: (0, uniqid_1.default)('c-'), serverReferenceId: server.serverId, server })).save();
+        const channel = await Channel_1.Channel.create(Object.assign(Object.assign({}, options), { channelId: (0, uniqid_1.default)('c-'), serverReferenceId: server.serverReferenceId, server })).save();
         return channel;
     }
 };

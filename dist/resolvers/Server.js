@@ -29,37 +29,35 @@ const typeorm_1 = require("typeorm");
 let ServerResolver = class ServerResolver {
     async servers({ req }) {
         const entityManager = (0, typeorm_1.getManager)();
-        const servers = await entityManager.find(Server_1.Server, {
-            where: {
-                owner: {
-                    id: req.session.userId,
-                },
-            },
-            relations: ['owner'],
-        });
+        console.log();
+        const servers = entityManager
+            .createQueryBuilder(Server_1.Server, 'server')
+            .leftJoinAndSelect('server.users', 'users')
+            .where('users."globalUserReferenceId" = :userId', { userId: req.session.userId })
+            .getMany();
         return servers;
     }
-    async server(serverId) {
-        const server = await Server_1.Server.findOne({ where: { serverId } });
+    async server(serverReferenceId) {
+        const server = await Server_1.Server.findOne({ where: { serverReferenceId } });
         if (!server) {
             throw new Error('Server not found');
         }
         return server;
     }
-    async joinServer(serverId, { req }) {
+    async joinServer(serverReferenceId, { req }) {
         try {
-            const user = await GlobalUser_1.GlobalUser.findOne(req.session.userId);
+            const user = await GlobalUser_1.GlobalUser.findOne({ where: { globalUserId: req.session.userId } });
             if (!user) {
                 throw new Error('User not found');
             }
-            const server = await Server_1.Server.findOne({ where: { serverId } });
+            const server = await Server_1.Server.findOne({ where: { serverReferenceId } });
             if (!server) {
                 throw new Error('Server not found');
             }
             await LocalUser_1.LocalUser.create({
                 localId: (0, uniqid_1.default)('l-'),
                 globalUser: user,
-                globalId: user.id,
+                globalUserReferenceId: user.globalUserId,
                 server,
                 serverReferenceId: server.serverReferenceId,
             }).save();
@@ -79,7 +77,7 @@ let ServerResolver = class ServerResolver {
         return server;
     }
     async createServer(options, { req }) {
-        const owner = await GlobalUser_1.GlobalUser.findOne(req.session.userId);
+        const owner = await GlobalUser_1.GlobalUser.findOne({ where: { globalUserId: req.session.userId } });
         if (!owner) {
             throw new Error('User not found');
         }
@@ -87,7 +85,7 @@ let ServerResolver = class ServerResolver {
         await LocalUser_1.LocalUser.create({
             localId: (0, uniqid_1.default)('l-'),
             globalUser: owner,
-            globalId: owner.id,
+            globalUserReferenceId: owner.globalUserId,
             server,
             serverReferenceId: server.serverReferenceId,
         }).save();
@@ -112,7 +110,7 @@ __decorate([
 __decorate([
     (0, type_graphql_1.Query)(() => Server_1.Server),
     (0, type_graphql_1.UseMiddleware)([isAuth_1.isAuth]),
-    __param(0, (0, type_graphql_1.Arg)('serverId')),
+    __param(0, (0, type_graphql_1.Arg)('serverReferenceId')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
@@ -120,7 +118,7 @@ __decorate([
 __decorate([
     (0, type_graphql_1.Mutation)(() => Boolean),
     (0, type_graphql_1.UseMiddleware)([isAuth_1.isAuth]),
-    __param(0, (0, type_graphql_1.Arg)('serverId')),
+    __param(0, (0, type_graphql_1.Arg)('serverReferenceId')),
     __param(1, (0, type_graphql_1.Ctx)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Object]),

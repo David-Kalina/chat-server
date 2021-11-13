@@ -29,7 +29,7 @@ let GlobalUserResolver = class GlobalUserResolver {
     async register(options, { req }) {
         try {
             const user = await GlobalUser_1.GlobalUser.create(Object.assign(Object.assign({}, options), { globalUserId: (0, uniqid_1.default)('global-'), password: await bcryptjs_1.default.hash(options.password, 12) })).save();
-            req.session.userId = user.id;
+            req.session.userId = user.globalUserId;
             return user;
         }
         catch (error) {
@@ -46,7 +46,7 @@ let GlobalUserResolver = class GlobalUserResolver {
             if (!valid) {
                 throw new Error('Invalid password');
             }
-            req.session.userId = user.id;
+            req.session.userId = user.globalUserId;
             return user;
         }
         catch (error) {

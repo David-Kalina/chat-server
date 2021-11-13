@@ -29,16 +29,16 @@ __decorate([
 ], LocalUser.prototype, "localId", void 0);
 __decorate([
     (0, type_graphql_1.Field)(),
-    (0, typeorm_1.Column)({ nullable: false, unique: true }),
+    (0, typeorm_1.Column)({ nullable: false }),
     __metadata("design:type", String)
-], LocalUser.prototype, "globalId", void 0);
+], LocalUser.prototype, "globalUserReferenceId", void 0);
 __decorate([
     (0, typeorm_1.ManyToOne)(() => Server_1.Server, server => server.channels),
     __metadata("design:type", Server_1.Server)
 ], LocalUser.prototype, "server", void 0);
 __decorate([
     (0, type_graphql_1.Field)(),
-    (0, typeorm_1.Column)({ nullable: false, unique: true }),
+    (0, typeorm_1.Column)({ nullable: false }),
     __metadata("design:type", String)
 ], LocalUser.prototype, "serverReferenceId", void 0);
 __decorate([

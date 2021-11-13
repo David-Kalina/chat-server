@@ -25,7 +25,7 @@ export class GlobalUserResolver {
         password: await bcrypt.hash(options.password, 12),
       }).save()
 
-      req.session.userId = user.id
+      req.session.userId = user.globalUserId
 
       return user
     } catch (error) {
@@ -48,7 +48,7 @@ export class GlobalUserResolver {
         throw new Error('Invalid password')
       }
 
-      req.session.userId = user.id
+      req.session.userId = user.globalUserId
 
       return user
     } catch (error) {

@@ -15,14 +15,14 @@ export class LocalUser extends BaseEntity {
   localId: string
 
   @Field()
-  @Column({ nullable: false, unique: true })
-  globalId: string
+  @Column({ nullable: false })
+  globalUserReferenceId: string
 
   @ManyToOne(() => Server, server => server.channels)
   server: Server
 
   @Field()
-  @Column({ nullable: false, unique: true })
+  @Column({ nullable: false })
   serverReferenceId: string
 
   @ManyToOne(() => GlobalUser, user => user.localUser)
