@@ -1,6 +1,15 @@
 import { isAuth } from '../middleware/isAuth'
 import { isConnectedToServer } from '../middleware/isConnectedToServer'
-import { Arg, Ctx, Mutation, Query, Resolver, UseMiddleware } from 'type-graphql'
+import {
+  Arg,
+  Ctx,
+  FieldResolver,
+  Mutation,
+  Query,
+  Resolver,
+  Root,
+  UseMiddleware,
+} from 'type-graphql'
 import uniqid from 'uniqid'
 import { Channel } from '../Entities/Channel'
 import { Server } from '../Entities/Server'
@@ -19,7 +28,13 @@ export class ChannelResolver {
     }
   }
 
+  @FieldResolver()
+  inviteUrl(@Root() parent: Channel) {
+    return parent.serverReferenceId
+  }
+
   @Query(() => Channel)
+  @UseMiddleware([isAuth, isConnectedToServer])
   async channel(@Arg('channelId') channelId: string) {
     try {
       return await Channel.findOne({ where: { channelId } })
@@ -28,17 +43,17 @@ export class ChannelResolver {
     }
   }
 
-  @Mutation(() => String)
+  @Mutation(() => Channel)
   async connectToChannel(
     @Arg('channelId') channelId: string,
     @Ctx() { req }: MyContext
-  ): Promise<String> {
+  ): Promise<Channel> {
     const channel = await Channel.findOne({ where: { channelId } })
     if (!channel) {
       throw new Error('Channel not found')
     }
     req.session.connectedChannelId = channel.channelId
-    return channel.channelId
+    return channel
   }
 
   @Mutation(() => Channel)

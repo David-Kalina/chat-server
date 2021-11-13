@@ -15,6 +15,7 @@ const typeorm_1 = require("typeorm");
 require("reflect-metadata");
 const GlobalUser_1 = require("./GlobalUser");
 const Channel_1 = require("./Channel");
+const LocalUser_1 = require("./LocalUser");
 let Server = class Server extends typeorm_1.BaseEntity {
 };
 __decorate([
@@ -26,7 +27,7 @@ __decorate([
     (0, type_graphql_1.Field)(),
     (0, typeorm_1.Column)({ unique: true, nullable: false }),
     __metadata("design:type", String)
-], Server.prototype, "serverId", void 0);
+], Server.prototype, "serverReferenceId", void 0);
 __decorate([
     (0, type_graphql_1.Field)(),
     (0, typeorm_1.Column)({ length: 255, unique: true }),
@@ -40,6 +41,10 @@ __decorate([
     (0, typeorm_1.OneToMany)(() => Channel_1.Channel, channel => channel.server),
     __metadata("design:type", Array)
 ], Server.prototype, "channels", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => LocalUser_1.LocalUser, user => user.server),
+    __metadata("design:type", Array)
+], Server.prototype, "users", void 0);
 Server = __decorate([
     (0, type_graphql_1.ObjectType)(),
     (0, typeorm_1.Entity)()

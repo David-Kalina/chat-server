@@ -13,6 +13,8 @@ exports.LocalUser = void 0;
 const type_graphql_1 = require("type-graphql");
 const typeorm_1 = require("typeorm");
 require("reflect-metadata");
+const Server_1 = require("./Server");
+const GlobalUser_1 = require("./GlobalUser");
 let LocalUser = class LocalUser extends typeorm_1.BaseEntity {
 };
 __decorate([
@@ -24,17 +26,25 @@ __decorate([
     (0, type_graphql_1.Field)(),
     (0, typeorm_1.Column)({ nullable: false, unique: true }),
     __metadata("design:type", String)
-], LocalUser.prototype, "local_id", void 0);
+], LocalUser.prototype, "localId", void 0);
 __decorate([
     (0, type_graphql_1.Field)(),
-    (0, typeorm_1.Column)({ nullable: false }),
+    (0, typeorm_1.Column)({ nullable: false, unique: true }),
     __metadata("design:type", String)
-], LocalUser.prototype, "global_id", void 0);
+], LocalUser.prototype, "globalId", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => Server_1.Server, server => server.channels),
+    __metadata("design:type", Server_1.Server)
+], LocalUser.prototype, "server", void 0);
 __decorate([
     (0, type_graphql_1.Field)(),
-    (0, typeorm_1.Column)('uuid', { nullable: false, unique: true }),
+    (0, typeorm_1.Column)({ nullable: false, unique: true }),
     __metadata("design:type", String)
-], LocalUser.prototype, "workspace_id", void 0);
+], LocalUser.prototype, "serverReferenceId", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => GlobalUser_1.GlobalUser, user => user.localUser),
+    __metadata("design:type", GlobalUser_1.GlobalUser)
+], LocalUser.prototype, "globalUser", void 0);
 LocalUser = __decorate([
     (0, type_graphql_1.ObjectType)(),
     (0, typeorm_1.Entity)()

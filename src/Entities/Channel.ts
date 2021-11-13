@@ -22,6 +22,9 @@ export class Channel extends BaseEntity {
   name: string
 
   @Field()
+  inviteUrl: string
+
+  @Field()
   @Column({ length: 500 })
   description: string
 

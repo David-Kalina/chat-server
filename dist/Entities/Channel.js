@@ -38,6 +38,10 @@ __decorate([
 ], Channel.prototype, "name", void 0);
 __decorate([
     (0, type_graphql_1.Field)(),
+    __metadata("design:type", String)
+], Channel.prototype, "inviteUrl", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(),
     (0, typeorm_1.Column)({ length: 500 }),
     __metadata("design:type", String)
 ], Channel.prototype, "description", void 0);

@@ -3,6 +3,7 @@ import { BaseEntity, Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColum
 import 'reflect-metadata'
 import { GlobalUser } from './GlobalUser'
 import { Channel } from './Channel'
+import { LocalUser } from './LocalUser'
 @ObjectType()
 @Entity()
 export class Server extends BaseEntity {
@@ -12,7 +13,7 @@ export class Server extends BaseEntity {
 
   @Field()
   @Column({ unique: true, nullable: false })
-  serverId: string
+  serverReferenceId: string
 
   @Field()
   @Column({ length: 255, unique: true })
@@ -23,4 +24,7 @@ export class Server extends BaseEntity {
 
   @OneToMany(() => Channel, channel => channel.server)
   channels: Channel[]
+
+  @OneToMany(() => LocalUser, user => user.server)
+  users: LocalUser[]
 }

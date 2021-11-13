@@ -14,6 +14,7 @@ const type_graphql_1 = require("type-graphql");
 const typeorm_1 = require("typeorm");
 require("reflect-metadata");
 const Server_1 = require("./Server");
+const LocalUser_1 = require("./LocalUser");
 let GlobalUser = class GlobalUser extends typeorm_1.BaseEntity {
 };
 __decorate([
@@ -58,6 +59,10 @@ __decorate([
     (0, typeorm_1.OneToMany)(() => Server_1.Server, server => server.owner),
     __metadata("design:type", Array)
 ], GlobalUser.prototype, "servers", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => LocalUser_1.LocalUser, user => user.globalUser),
+    __metadata("design:type", Array)
+], GlobalUser.prototype, "localUser", void 0);
 GlobalUser = __decorate([
     (0, type_graphql_1.ObjectType)(),
     (0, typeorm_1.Entity)()

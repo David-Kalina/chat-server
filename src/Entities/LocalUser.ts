@@ -1,6 +1,8 @@
 import { Field, ID, ObjectType } from 'type-graphql'
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
+import { BaseEntity, Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
 import 'reflect-metadata'
+import { Server } from './Server'
+import { GlobalUser } from './GlobalUser'
 @ObjectType()
 @Entity()
 export class LocalUser extends BaseEntity {
@@ -10,13 +12,19 @@ export class LocalUser extends BaseEntity {
 
   @Field()
   @Column({ nullable: false, unique: true })
-  local_id: string
+  localId: string
 
   @Field()
-  @Column({ nullable: false })
-  global_id: string
+  @Column({ nullable: false, unique: true })
+  globalId: string
+
+  @ManyToOne(() => Server, server => server.channels)
+  server: Server
 
   @Field()
-  @Column('uuid', { nullable: false, unique: true })
-  workspace_id: string
+  @Column({ nullable: false, unique: true })
+  serverReferenceId: string
+
+  @ManyToOne(() => GlobalUser, user => user.localUser)
+  globalUser: GlobalUser
 }

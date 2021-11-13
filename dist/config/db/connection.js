@@ -11,7 +11,7 @@ async function connectToDatabase() {
         username: process.env.DATABASE_USERNAME,
         database: process.env.DATABASE_NAME,
         type: 'postgres',
-        logging: true,
+        logging: false,
         port: 5432,
         synchronize: true,
         entities: entities_1.entities,
