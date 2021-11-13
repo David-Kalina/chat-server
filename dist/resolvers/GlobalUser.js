@@ -26,6 +26,18 @@ let GlobalUserResolver = class GlobalUserResolver {
     hello() {
         return 'Hello World!';
     }
+    async logout({ req, res }) {
+        return new Promise((resolve, reject) => {
+            req.session.destroy(err => {
+                if (err) {
+                    console.log(err);
+                    reject(false);
+                }
+                res.clearCookie('qid');
+                resolve(true);
+            });
+        });
+    }
     async register(options, { req }) {
         try {
             const user = await GlobalUser_1.GlobalUser.create(Object.assign(Object.assign({}, options), { globalUserId: (0, uniqid_1.default)('global-'), password: await bcryptjs_1.default.hash(options.password, 12) })).save();
@@ -60,6 +72,13 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], GlobalUserResolver.prototype, "hello", null);
+__decorate([
+    (0, type_graphql_1.Mutation)(() => Boolean),
+    __param(0, (0, type_graphql_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], GlobalUserResolver.prototype, "logout", null);
 __decorate([
     (0, type_graphql_1.Mutation)(() => GlobalUser_1.GlobalUser),
     __param(0, (0, type_graphql_1.Arg)('options')),

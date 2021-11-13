@@ -13,6 +13,20 @@ export class GlobalUserResolver {
     return 'Hello World!'
   }
 
+  @Mutation(() => Boolean)
+  async logout(@Ctx() { req, res }: MyContext) {
+    return new Promise((resolve, reject) => {
+      req.session!.destroy(err => {
+        if (err) {
+          console.log(err)
+          reject(false)
+        }
+        res.clearCookie('qid')
+        resolve(true)
+      })
+    })
+  }
+
   @Mutation(() => GlobalUser)
   async register(
     @Arg('options') options: RegisterInput,

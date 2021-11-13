@@ -13,23 +13,9 @@ import { getManager } from 'typeorm'
 @Resolver(Server)
 export class ServerResolver {
   @Query(() => [Server])
+  @UseMiddleware(isAuth)
   async servers(@Ctx() { req }: MyContext): Promise<Server[]> {
     const entityManager = getManager()
-
-    // ! User query builder to find and filter servers by user
-
-    // const servers = await entityManager.find(Server, {
-    //   relations: ['users'],
-    //   where: {
-    //     users: {
-    //       some: {
-    //         globalId: req.session.userId,
-    //       },
-    //     },
-    //   },
-    // })
-
-    console.log()
 
     const servers = entityManager
       .createQueryBuilder(Server, 'server')

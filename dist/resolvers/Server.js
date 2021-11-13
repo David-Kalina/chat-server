@@ -29,7 +29,6 @@ const typeorm_1 = require("typeorm");
 let ServerResolver = class ServerResolver {
     async servers({ req }) {
         const entityManager = (0, typeorm_1.getManager)();
-        console.log();
         const servers = entityManager
             .createQueryBuilder(Server_1.Server, 'server')
             .leftJoinAndSelect('server.users', 'users')
@@ -102,6 +101,7 @@ let ServerResolver = class ServerResolver {
 };
 __decorate([
     (0, type_graphql_1.Query)(() => [Server_1.Server]),
+    (0, type_graphql_1.UseMiddleware)(isAuth_1.isAuth),
     __param(0, (0, type_graphql_1.Ctx)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
