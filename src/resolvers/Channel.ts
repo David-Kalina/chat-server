@@ -62,21 +62,27 @@ export class ChannelResolver {
     @Arg('options') options: CreateChannelInput,
     @Ctx() { req }: MyContext
   ): Promise<Channel> {
-    const serverId = req.session.connectedServerId
+    console.log('Hello')
+    try {
+      const serverReferenceId = req.session.connectedServerId
 
-    const server = await Server.findOne({ where: { serverId } })
+      const server = await Server.findOne({ where: { serverReferenceId } })
 
-    if (!server) {
-      throw new Error('Server not found')
+      if (!server) {
+        throw new Error('Server not found')
+      }
+
+      const channel = await Channel.create({
+        ...options,
+        channelId: uniqid('c-'),
+        serverReferenceId: server.serverReferenceId,
+        server,
+      }).save()
+
+      return channel
+    } catch (error) {
+      console.log(error)
+      return error
     }
-
-    const channel = await Channel.create({
-      ...options,
-      channelId: uniqid('c-'),
-      serverReferenceId: server.serverReferenceId,
-      server,
-    }).save()
-
-    return channel
   }
 }

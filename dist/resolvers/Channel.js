@@ -52,13 +52,20 @@ let ChannelResolver = class ChannelResolver {
         return channel;
     }
     async createChannel(options, { req }) {
-        const serverId = req.session.connectedServerId;
-        const server = await Server_1.Server.findOne({ where: { serverId } });
-        if (!server) {
-            throw new Error('Server not found');
+        console.log('Hello');
+        try {
+            const serverReferenceId = req.session.connectedServerId;
+            const server = await Server_1.Server.findOne({ where: { serverReferenceId } });
+            if (!server) {
+                throw new Error('Server not found');
+            }
+            const channel = await Channel_1.Channel.create(Object.assign(Object.assign({}, options), { channelId: (0, uniqid_1.default)('c-'), serverReferenceId: server.serverReferenceId, server })).save();
+            return channel;
         }
-        const channel = await Channel_1.Channel.create(Object.assign(Object.assign({}, options), { channelId: (0, uniqid_1.default)('c-'), serverReferenceId: server.serverReferenceId, server })).save();
-        return channel;
+        catch (error) {
+            console.log(error);
+            return error;
+        }
     }
 };
 __decorate([

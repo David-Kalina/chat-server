@@ -82,6 +82,9 @@ export class ServerResolver {
     if (!server) {
       throw new Error('Server not found')
     }
+
+    console.log(server.serverReferenceId)
+
     req.session.connectedServerId = server.serverReferenceId
     return server
   }
@@ -123,5 +126,38 @@ export class ServerResolver {
     req.session.connectedServerId = server.serverReferenceId
 
     return server
+  }
+
+  @Mutation(() => Boolean)
+  @UseMiddleware([isAuth])
+  async leaveServer(@Ctx() { req }: MyContext): Promise<Boolean> {
+    const user = await LocalUser.findOne({
+      where: {
+        globalUserReferenceId: req.session.userId,
+        serverReferenceId: req.session.connectedServerId,
+      },
+    })
+
+    if (!user) {
+      throw new Error('User not found')
+    }
+
+    await user.remove()
+
+    return true
+  }
+
+  @Mutation(() => Boolean)
+  @UseMiddleware([isAuth])
+  async deleteServer(@Arg('serverReferenceId') serverReferenceId: string): Promise<Boolean> {
+    const server = await Server.findOne({ where: { serverReferenceId } })
+
+    if (!server) {
+      throw new Error('Server not found')
+    }
+
+    await server.remove()
+
+    return true
   }
 }

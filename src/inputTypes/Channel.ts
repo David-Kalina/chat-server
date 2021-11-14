@@ -9,5 +9,5 @@ export class CreateChannelInput {
   description: string
 
   @Field()
-  serverId: string
+  serverReferenceId: string
 }

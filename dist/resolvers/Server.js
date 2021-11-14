@@ -72,6 +72,7 @@ let ServerResolver = class ServerResolver {
         if (!server) {
             throw new Error('Server not found');
         }
+        console.log(server.serverReferenceId);
         req.session.connectedServerId = server.serverReferenceId;
         return server;
     }
@@ -97,6 +98,27 @@ let ServerResolver = class ServerResolver {
         }).save();
         req.session.connectedServerId = server.serverReferenceId;
         return server;
+    }
+    async leaveServer({ req }) {
+        const user = await LocalUser_1.LocalUser.findOne({
+            where: {
+                globalUserReferenceId: req.session.userId,
+                serverReferenceId: req.session.connectedServerId,
+            },
+        });
+        if (!user) {
+            throw new Error('User not found');
+        }
+        await user.remove();
+        return true;
+    }
+    async deleteServer(serverReferenceId) {
+        const server = await Server_1.Server.findOne({ where: { serverReferenceId } });
+        if (!server) {
+            throw new Error('Server not found');
+        }
+        await server.remove();
+        return true;
     }
 };
 __decorate([
@@ -142,6 +164,22 @@ __decorate([
     __metadata("design:paramtypes", [Server_2.CreateServerInput, Object]),
     __metadata("design:returntype", Promise)
 ], ServerResolver.prototype, "createServer", null);
+__decorate([
+    (0, type_graphql_1.Mutation)(() => Boolean),
+    (0, type_graphql_1.UseMiddleware)([isAuth_1.isAuth]),
+    __param(0, (0, type_graphql_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], ServerResolver.prototype, "leaveServer", null);
+__decorate([
+    (0, type_graphql_1.Mutation)(() => Boolean),
+    (0, type_graphql_1.UseMiddleware)([isAuth_1.isAuth]),
+    __param(0, (0, type_graphql_1.Arg)('serverReferenceId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], ServerResolver.prototype, "deleteServer", null);
 ServerResolver = __decorate([
     (0, type_graphql_1.Resolver)(Server_1.Server)
 ], ServerResolver);

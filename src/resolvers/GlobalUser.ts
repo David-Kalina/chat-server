@@ -1,10 +1,11 @@
 import { RegisterInput } from '../inputTypes/Register'
 import { MyContext } from 'src/types'
-import { Arg, Ctx, Mutation, Query, Resolver } from 'type-graphql'
+import { Arg, Ctx, Mutation, Query, Resolver, UseMiddleware } from 'type-graphql'
 import { GlobalUser } from '../Entities/GlobalUser'
 import bcrypt from 'bcryptjs'
 import uniqid from 'uniqid'
 import { LoginInput } from '../inputTypes/Login'
+import { isAuth } from '../middleware/isAuth'
 
 @Resolver(GlobalUser)
 export class GlobalUserResolver {
@@ -13,18 +14,50 @@ export class GlobalUserResolver {
     return 'Hello World!'
   }
 
+  @Query(() => String)
+  @UseMiddleware(isAuth)
+  async getOnlineStatus(@Ctx() { req }: MyContext) {
+    if (!req.session!.userId) {
+      return 'offline'
+    }
+    const userStatus = req.session.onlineStatus
+    if (!userStatus) {
+      return 'offline'
+    }
+    return userStatus
+  }
+
+  @Mutation(() => String)
+  @UseMiddleware(isAuth)
+  async setOnlineStatus(
+    @Arg('onlineStatus') onlineStatus: string,
+    @Ctx() { req }: MyContext
+  ): Promise<String> {
+    if (!req.session!.userId) {
+      return 'offline'
+    }
+
+    req.session.onlineStatus = onlineStatus
+    return req.session.onlineStatus
+  }
+
   @Mutation(() => Boolean)
   async logout(@Ctx() { req, res }: MyContext) {
-    return new Promise((resolve, reject) => {
-      req.session!.destroy(err => {
-        if (err) {
-          console.log(err)
-          reject(false)
-        }
-        res.clearCookie('qid')
-        resolve(true)
+    try {
+      return new Promise((resolve, reject) => {
+        req.session!.destroy(err => {
+          if (err) {
+            console.log(err)
+            reject(false)
+          }
+          res.clearCookie('qid')
+          resolve(true)
+        })
       })
-    })
+    } catch (error) {
+      console.log(error)
+      return error
+    }
   }
 
   @Mutation(() => GlobalUser)
@@ -40,6 +73,7 @@ export class GlobalUserResolver {
       }).save()
 
       req.session.userId = user.globalUserId
+      req.session.onlineStatus = 'online'
 
       return user
     } catch (error) {
@@ -63,6 +97,7 @@ export class GlobalUserResolver {
       }
 
       req.session.userId = user.globalUserId
+      req.session.onlineStatus = 'online'
 
       return user
     } catch (error) {

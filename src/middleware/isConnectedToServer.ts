@@ -7,6 +7,7 @@ export const isConnectedToServer: MiddlewareFn<MyContext> = ({ context, args }, 
   }
 
   if (!context.req.session.connectedServerId === args.serverId) {
+    console.log('Insane')
     throw new Error('not connected to server')
   }
 

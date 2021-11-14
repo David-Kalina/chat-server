@@ -24,7 +24,7 @@ __decorate([
 __decorate([
     (0, type_graphql_1.Field)(),
     __metadata("design:type", String)
-], CreateChannelInput.prototype, "serverId", void 0);
+], CreateChannelInput.prototype, "serverReferenceId", void 0);
 CreateChannelInput = __decorate([
     (0, type_graphql_1.InputType)()
 ], CreateChannelInput);
