@@ -100,11 +100,16 @@ let ServerResolver = class ServerResolver {
         return server;
     }
     async leaveServer({ req }) {
+        console.log(req.session.connectedServerId);
         const user = await LocalUser_1.LocalUser.findOne({
-            where: {
-                globalUserReferenceId: req.session.userId,
-                serverReferenceId: req.session.connectedServerId,
-            },
+            where: [
+                {
+                    globalUserReferenceId: req.session.userId,
+                },
+                {
+                    serverReferenceId: req.session.connectedServerId,
+                },
+            ],
         });
         if (!user) {
             throw new Error('User not found');

@@ -131,11 +131,18 @@ export class ServerResolver {
   @Mutation(() => Boolean)
   @UseMiddleware([isAuth])
   async leaveServer(@Ctx() { req }: MyContext): Promise<Boolean> {
+    console.log(req.session.connectedServerId)
+
     const user = await LocalUser.findOne({
-      where: {
-        globalUserReferenceId: req.session.userId,
-        serverReferenceId: req.session.connectedServerId,
-      },
+      where: [
+        {
+          globalUserReferenceId: req.session.userId,
+        },
+
+        {
+          serverReferenceId: req.session.connectedServerId,
+        },
+      ],
     })
 
     if (!user) {
