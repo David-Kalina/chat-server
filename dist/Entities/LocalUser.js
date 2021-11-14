@@ -33,7 +33,7 @@ __decorate([
     __metadata("design:type", String)
 ], LocalUser.prototype, "globalUserReferenceId", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => Server_1.Server, server => server.channels),
+    (0, typeorm_1.ManyToOne)(() => Server_1.Server, server => server.channels, { onDelete: 'CASCADE' }),
     __metadata("design:type", Server_1.Server)
 ], LocalUser.prototype, "server", void 0);
 __decorate([

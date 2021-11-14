@@ -156,8 +156,10 @@ export class ServerResolver {
 
   @Mutation(() => Boolean)
   @UseMiddleware([isAuth])
-  async deleteServer(@Arg('serverReferenceId') serverReferenceId: string): Promise<Boolean> {
-    const server = await Server.findOne({ where: { serverReferenceId } })
+  async deleteServer(@Ctx() { req }: MyContext): Promise<Boolean> {
+    const server = await Server.findOne({
+      where: { serverReferenceId: req.session.connectedServerId },
+    })
 
     if (!server) {
       throw new Error('Server not found')

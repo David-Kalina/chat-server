@@ -22,9 +22,9 @@ export class Server extends BaseEntity {
   @ManyToOne(() => GlobalUser, user => user.servers)
   owner: GlobalUser
 
-  @OneToMany(() => Channel, channel => channel.server)
+  @OneToMany(() => Channel, channel => channel.server, { onDelete: 'CASCADE' })
   channels: Channel[]
 
-  @OneToMany(() => LocalUser, user => user.server)
+  @OneToMany(() => LocalUser, user => user.server, { onDelete: 'CASCADE' })
   users: LocalUser[]
 }

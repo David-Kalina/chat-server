@@ -38,11 +38,11 @@ __decorate([
     __metadata("design:type", GlobalUser_1.GlobalUser)
 ], Server.prototype, "owner", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => Channel_1.Channel, channel => channel.server),
+    (0, typeorm_1.OneToMany)(() => Channel_1.Channel, channel => channel.server, { onDelete: 'CASCADE' }),
     __metadata("design:type", Array)
 ], Server.prototype, "channels", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => LocalUser_1.LocalUser, user => user.server),
+    (0, typeorm_1.OneToMany)(() => LocalUser_1.LocalUser, user => user.server, { onDelete: 'CASCADE' }),
     __metadata("design:type", Array)
 ], Server.prototype, "users", void 0);
 Server = __decorate([

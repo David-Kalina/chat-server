@@ -46,7 +46,7 @@ __decorate([
     __metadata("design:type", String)
 ], Channel.prototype, "description", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => Server_1.Server, server => server.channels),
+    (0, typeorm_1.ManyToOne)(() => Server_1.Server, server => server.channels, { onDelete: 'CASCADE' }),
     __metadata("design:type", Server_1.Server)
 ], Channel.prototype, "server", void 0);
 Channel = __decorate([

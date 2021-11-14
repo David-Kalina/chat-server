@@ -28,6 +28,6 @@ export class Channel extends BaseEntity {
   @Column({ length: 500 })
   description: string
 
-  @ManyToOne(() => Server, server => server.channels)
+  @ManyToOne(() => Server, server => server.channels, { onDelete: 'CASCADE' })
   server: Server
 }

@@ -18,7 +18,7 @@ export class LocalUser extends BaseEntity {
   @Column({ nullable: false })
   globalUserReferenceId: string
 
-  @ManyToOne(() => Server, server => server.channels)
+  @ManyToOne(() => Server, server => server.channels, { onDelete: 'CASCADE' })
   server: Server
 
   @Field()

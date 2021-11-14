@@ -117,8 +117,10 @@ let ServerResolver = class ServerResolver {
         await user.remove();
         return true;
     }
-    async deleteServer(serverReferenceId) {
-        const server = await Server_1.Server.findOne({ where: { serverReferenceId } });
+    async deleteServer({ req }) {
+        const server = await Server_1.Server.findOne({
+            where: { serverReferenceId: req.session.connectedServerId },
+        });
         if (!server) {
             throw new Error('Server not found');
         }
@@ -188,9 +190,9 @@ __decorate([
 __decorate([
     (0, type_graphql_1.Mutation)(() => Boolean),
     (0, type_graphql_1.UseMiddleware)([isAuth_1.isAuth]),
-    __param(0, (0, type_graphql_1.Arg)('serverReferenceId')),
+    __param(0, (0, type_graphql_1.Ctx)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], ServerResolver.prototype, "deleteServer", null);
 __decorate([
