@@ -167,4 +167,21 @@ export class ServerResolver {
 
     return true
   }
+
+  @Mutation(() => Server)
+  @UseMiddleware([isAuth])
+  async editServer(
+    @Arg('serverReferenceId') serverReferenceId: string,
+    @Arg('options') options: CreateServerInput
+  ): Promise<Server> {
+    const server = await Server.findOne({ where: { serverReferenceId } })
+
+    if (!server) {
+      throw new Error('Server not found')
+    }
+
+    await Server.merge(server, options).save()
+
+    return server
+  }
 }

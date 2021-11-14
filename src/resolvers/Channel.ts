@@ -85,4 +85,33 @@ export class ChannelResolver {
       return error
     }
   }
+
+  @Mutation(() => Boolean)
+  @UseMiddleware([isAuth, isConnectedToServer])
+  async deleteChannel(@Arg('channelId') channelId: string) {
+    try {
+      await Channel.delete({ channelId })
+      return true
+    } catch (error) {
+      return error
+    }
+  }
+
+  @Mutation(() => Channel)
+  @UseMiddleware([isAuth, isConnectedToServer])
+  async editChannel(
+    @Arg('channelId') channelId: string,
+    @Arg('options') options: CreateChannelInput
+  ) {
+    try {
+      const channel = await Channel.findOne({ where: { channelId } })
+      if (!channel) {
+        throw new Error('Channel not found')
+      }
+      await Channel.update({ channelId }, options)
+      return await Channel.findOne({ where: { channelId } })
+    } catch (error) {
+      return error
+    }
+  }
 }

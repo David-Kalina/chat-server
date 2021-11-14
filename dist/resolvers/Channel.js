@@ -67,6 +67,28 @@ let ChannelResolver = class ChannelResolver {
             return error;
         }
     }
+    async deleteChannel(channelId) {
+        try {
+            await Channel_1.Channel.delete({ channelId });
+            return true;
+        }
+        catch (error) {
+            return error;
+        }
+    }
+    async editChannel(channelId, options) {
+        try {
+            const channel = await Channel_1.Channel.findOne({ where: { channelId } });
+            if (!channel) {
+                throw new Error('Channel not found');
+            }
+            await Channel_1.Channel.update({ channelId }, options);
+            return await Channel_1.Channel.findOne({ where: { channelId } });
+        }
+        catch (error) {
+            return error;
+        }
+    }
 };
 __decorate([
     (0, type_graphql_1.Query)(() => [Channel_1.Channel]),
@@ -108,6 +130,23 @@ __decorate([
     __metadata("design:paramtypes", [Channel_2.CreateChannelInput, Object]),
     __metadata("design:returntype", Promise)
 ], ChannelResolver.prototype, "createChannel", null);
+__decorate([
+    (0, type_graphql_1.Mutation)(() => Boolean),
+    (0, type_graphql_1.UseMiddleware)([isAuth_1.isAuth, isConnectedToServer_1.isConnectedToServer]),
+    __param(0, (0, type_graphql_1.Arg)('channelId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], ChannelResolver.prototype, "deleteChannel", null);
+__decorate([
+    (0, type_graphql_1.Mutation)(() => Channel_1.Channel),
+    (0, type_graphql_1.UseMiddleware)([isAuth_1.isAuth, isConnectedToServer_1.isConnectedToServer]),
+    __param(0, (0, type_graphql_1.Arg)('channelId')),
+    __param(1, (0, type_graphql_1.Arg)('options')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Channel_2.CreateChannelInput]),
+    __metadata("design:returntype", Promise)
+], ChannelResolver.prototype, "editChannel", null);
 ChannelResolver = __decorate([
     (0, type_graphql_1.Resolver)(Channel_1.Channel)
 ], ChannelResolver);

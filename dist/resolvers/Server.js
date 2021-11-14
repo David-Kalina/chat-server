@@ -125,6 +125,14 @@ let ServerResolver = class ServerResolver {
         await server.remove();
         return true;
     }
+    async editServer(serverReferenceId, options) {
+        const server = await Server_1.Server.findOne({ where: { serverReferenceId } });
+        if (!server) {
+            throw new Error('Server not found');
+        }
+        await Server_1.Server.merge(server, options).save();
+        return server;
+    }
 };
 __decorate([
     (0, type_graphql_1.Query)(() => [Server_1.Server]),
@@ -185,6 +193,15 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], ServerResolver.prototype, "deleteServer", null);
+__decorate([
+    (0, type_graphql_1.Mutation)(() => Server_1.Server),
+    (0, type_graphql_1.UseMiddleware)([isAuth_1.isAuth]),
+    __param(0, (0, type_graphql_1.Arg)('serverReferenceId')),
+    __param(1, (0, type_graphql_1.Arg)('options')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Server_2.CreateServerInput]),
+    __metadata("design:returntype", Promise)
+], ServerResolver.prototype, "editServer", null);
 ServerResolver = __decorate([
     (0, type_graphql_1.Resolver)(Server_1.Server)
 ], ServerResolver);
