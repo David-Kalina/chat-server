@@ -9,50 +9,41 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.LocalUser = void 0;
+exports.ChatRoom = void 0;
 require("reflect-metadata");
-const ChatBlock_1 = require("../Entities/ChatBlock");
 const type_graphql_1 = require("type-graphql");
 const typeorm_1 = require("typeorm");
-const GlobalUser_1 = require("./GlobalUser");
-const Server_1 = require("./Server");
-let LocalUser = class LocalUser extends typeorm_1.BaseEntity {
+const ChatBlock_1 = require("../Entities/ChatBlock");
+let ChatRoom = class ChatRoom extends typeorm_1.BaseEntity {
 };
 __decorate([
     (0, type_graphql_1.Field)(() => type_graphql_1.ID),
     (0, typeorm_1.PrimaryGeneratedColumn)('uuid'),
     __metadata("design:type", String)
-], LocalUser.prototype, "id", void 0);
+], ChatRoom.prototype, "id", void 0);
 __decorate([
     (0, type_graphql_1.Field)(),
-    (0, typeorm_1.Column)({ nullable: false, unique: true }),
+    (0, typeorm_1.Column)(),
     __metadata("design:type", String)
-], LocalUser.prototype, "localUserReferenceId", void 0);
+], ChatRoom.prototype, "chatRoomReferenceId", void 0);
 __decorate([
     (0, type_graphql_1.Field)(),
-    (0, typeorm_1.Column)({ nullable: false }),
+    (0, typeorm_1.Column)(),
     __metadata("design:type", String)
-], LocalUser.prototype, "globalUserReferenceId", void 0);
-__decorate([
-    (0, typeorm_1.ManyToOne)(() => Server_1.Server, server => server.channels, { onDelete: 'CASCADE' }),
-    __metadata("design:type", Server_1.Server)
-], LocalUser.prototype, "server", void 0);
+], ChatRoom.prototype, "channelReferenceId", void 0);
 __decorate([
     (0, type_graphql_1.Field)(),
-    (0, typeorm_1.Column)({ nullable: false }),
+    (0, typeorm_1.Column)(),
     __metadata("design:type", String)
-], LocalUser.prototype, "serverReferenceId", void 0);
+], ChatRoom.prototype, "serverReferenceId", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => GlobalUser_1.GlobalUser, user => user.localUser),
-    __metadata("design:type", GlobalUser_1.GlobalUser)
-], LocalUser.prototype, "globalUser", void 0);
-__decorate([
-    (0, typeorm_1.OneToMany)(() => ChatBlock_1.ChatBlock, chatBlock => chatBlock.user),
+    (0, type_graphql_1.Field)(() => [ChatBlock_1.ChatBlock]),
+    (0, typeorm_1.OneToMany)(() => ChatBlock_1.ChatBlock, chatblock => chatblock.chatRoom),
     __metadata("design:type", Array)
-], LocalUser.prototype, "chatBlocks", void 0);
-LocalUser = __decorate([
+], ChatRoom.prototype, "chatBlocks", void 0);
+ChatRoom = __decorate([
     (0, type_graphql_1.ObjectType)(),
     (0, typeorm_1.Entity)()
-], LocalUser);
-exports.LocalUser = LocalUser;
-//# sourceMappingURL=LocalUser.js.map
+], ChatRoom);
+exports.ChatRoom = ChatRoom;
+//# sourceMappingURL=ChatRoom.js.map

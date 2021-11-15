@@ -22,6 +22,7 @@ const type_graphql_1 = require("type-graphql");
 const uniqid_1 = __importDefault(require("uniqid"));
 const Channel_1 = require("../Entities/Channel");
 const Server_1 = require("../Entities/Server");
+const ChatRoom_1 = require("../Entities/ChatRoom");
 const Channel_2 = require("../inputTypes/Channel");
 let ChannelResolver = class ChannelResolver {
     async channels(serverReferenceId) {
@@ -35,31 +36,47 @@ let ChannelResolver = class ChannelResolver {
     inviteUrl(parent) {
         return parent.serverReferenceId;
     }
-    async channel(channelId) {
+    async channel(channelReferenceId) {
         try {
-            return await Channel_1.Channel.findOne({ where: { channelId } });
+            return await Channel_1.Channel.findOne({ where: { channelReferenceId } });
         }
         catch (error) {
             return error;
         }
     }
-    async connectToChannel(channelId, { req }) {
-        const channel = await Channel_1.Channel.findOne({ where: { channelId } });
+    async connectToChannel(channelReferenceId, { req }) {
+        const channel = await Channel_1.Channel.findOne({
+            relations: ['chatRoom'],
+            where: { channelReferenceId },
+        });
         if (!channel) {
             throw new Error('Channel not found');
         }
-        req.session.connectedChannelId = channel.channelId;
+        req.session.connectedChannelId = channel.channelReferenceId;
+        req.session.connectedChatRoomId = channel.chatRoom.chatRoomReferenceId;
         return channel;
     }
     async createChannel(options, { req }) {
-        console.log('Hello');
         try {
             const serverReferenceId = req.session.connectedServerId;
             const server = await Server_1.Server.findOne({ where: { serverReferenceId } });
             if (!server) {
                 throw new Error('Server not found');
             }
-            const channel = await Channel_1.Channel.create(Object.assign(Object.assign({}, options), { channelId: (0, uniqid_1.default)('c-'), serverReferenceId: server.serverReferenceId, server })).save();
+            const channel = await Channel_1.Channel.create(Object.assign(Object.assign({}, options), { channelReferenceId: (0, uniqid_1.default)('c-'), serverReferenceId: server.serverReferenceId, server })).save();
+            const chatRoom = await ChatRoom_1.ChatRoom.create({
+                chatRoomReferenceId: (0, uniqid_1.default)('chat-'),
+                channelReferenceId: channel.channelReferenceId,
+                serverReferenceId: server.serverReferenceId,
+            }).save();
+            const channelWithChatRoom = await Channel_1.Channel.findOne({
+                where: { channelReferenceId: channel.channelReferenceId },
+            });
+            if (!channelWithChatRoom) {
+                throw new Error('Channel not found');
+            }
+            channelWithChatRoom.chatRoom = chatRoom;
+            await channelWithChatRoom.save();
             return channel;
         }
         catch (error) {
@@ -67,23 +84,27 @@ let ChannelResolver = class ChannelResolver {
             return error;
         }
     }
-    async deleteChannel(channelId) {
+    async deleteChannel({ req }) {
         try {
-            await Channel_1.Channel.delete({ channelId });
+            await Channel_1.Channel.delete({ channelReferenceId: req.session.connectedChannelId });
             return true;
         }
         catch (error) {
             return error;
         }
     }
-    async editChannel(channelId, options) {
+    async editChannel({ req }, options) {
         try {
-            const channel = await Channel_1.Channel.findOne({ where: { channelId } });
+            const channel = await Channel_1.Channel.findOne({
+                where: { channelReferenceId: req.session.connectedChannelId },
+            });
             if (!channel) {
                 throw new Error('Channel not found');
             }
-            await Channel_1.Channel.update({ channelId }, options);
-            return await Channel_1.Channel.findOne({ where: { channelId } });
+            await Channel_1.Channel.update({ channelReferenceId: req.session.connectedChannelId }, options);
+            return await Channel_1.Channel.findOne({
+                where: { channelReferenceId: req.session.connectedChannelId },
+            });
         }
         catch (error) {
             return error;
@@ -108,14 +129,14 @@ __decorate([
 __decorate([
     (0, type_graphql_1.Query)(() => Channel_1.Channel),
     (0, type_graphql_1.UseMiddleware)([isAuth_1.isAuth, isConnectedToServer_1.isConnectedToServer]),
-    __param(0, (0, type_graphql_1.Arg)('channelId')),
+    __param(0, (0, type_graphql_1.Arg)('channelReferenceId')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], ChannelResolver.prototype, "channel", null);
 __decorate([
     (0, type_graphql_1.Mutation)(() => Channel_1.Channel),
-    __param(0, (0, type_graphql_1.Arg)('channelId')),
+    __param(0, (0, type_graphql_1.Arg)('channelReferenceId')),
     __param(1, (0, type_graphql_1.Ctx)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Object]),
@@ -133,18 +154,18 @@ __decorate([
 __decorate([
     (0, type_graphql_1.Mutation)(() => Boolean),
     (0, type_graphql_1.UseMiddleware)([isAuth_1.isAuth, isConnectedToServer_1.isConnectedToServer]),
-    __param(0, (0, type_graphql_1.Arg)('channelId')),
+    __param(0, (0, type_graphql_1.Ctx)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], ChannelResolver.prototype, "deleteChannel", null);
 __decorate([
     (0, type_graphql_1.Mutation)(() => Channel_1.Channel),
     (0, type_graphql_1.UseMiddleware)([isAuth_1.isAuth, isConnectedToServer_1.isConnectedToServer]),
-    __param(0, (0, type_graphql_1.Arg)('channelId')),
+    __param(0, (0, type_graphql_1.Ctx)()),
     __param(1, (0, type_graphql_1.Arg)('options')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Channel_2.CreateChannelInput]),
+    __metadata("design:paramtypes", [Object, Channel_2.CreateChannelInput]),
     __metadata("design:returntype", Promise)
 ], ChannelResolver.prototype, "editChannel", null);
 ChannelResolver = __decorate([

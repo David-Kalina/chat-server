@@ -6,7 +6,6 @@ const isConnectedToServer = ({ context, args }, next) => {
         throw new Error('not connected to server');
     }
     if (!context.req.session.connectedServerId === args.serverId) {
-        console.log('Insane');
         throw new Error('not connected to server');
     }
     return next();

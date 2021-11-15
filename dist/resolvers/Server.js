@@ -26,6 +26,7 @@ const LocalUser_1 = require("../Entities/LocalUser");
 const Server_1 = require("../Entities/Server");
 const Server_2 = require("../inputTypes/Server");
 const typeorm_1 = require("typeorm");
+const isConnectedToServer_1 = require("../middleware/isConnectedToServer");
 let ServerResolver = class ServerResolver {
     async servers({ req }) {
         const entityManager = (0, typeorm_1.getManager)();
@@ -43,6 +44,16 @@ let ServerResolver = class ServerResolver {
         }
         return server;
     }
+    async getServerUsers({ req }) {
+        const server = await Server_1.Server.findOne({
+            relations: ['users'],
+            where: { serverReferenceId: req.session.connectedServerId },
+        });
+        if (!server) {
+            throw new Error('Server not found');
+        }
+        return server.users.length;
+    }
     async joinServer(serverReferenceId, { req }) {
         try {
             const user = await GlobalUser_1.GlobalUser.findOne({ where: { globalUserId: req.session.userId } });
@@ -53,27 +64,28 @@ let ServerResolver = class ServerResolver {
             if (!server) {
                 throw new Error('Server not found');
             }
-            await LocalUser_1.LocalUser.create({
-                localId: (0, uniqid_1.default)('l-'),
+            const localUser = await LocalUser_1.LocalUser.create({
+                localUserReferenceId: (0, uniqid_1.default)('l-'),
                 globalUser: user,
                 globalUserReferenceId: user.globalUserId,
                 server,
                 serverReferenceId: server.serverReferenceId,
             }).save();
+            req.session.localId = localUser.localUserReferenceId;
             return true;
         }
         catch (error) {
-            console.log(error);
             return error;
         }
     }
     async connectToServer(serverReferenceId, { req }) {
-        const server = await Server_1.Server.findOne({ where: { serverReferenceId } });
+        var _a;
+        const server = await Server_1.Server.findOne({ relations: ['users'], where: { serverReferenceId } });
         if (!server) {
             throw new Error('Server not found');
         }
-        console.log(server.serverReferenceId);
         req.session.connectedServerId = server.serverReferenceId;
+        req.session.localId = (_a = server.users.find(user => user.globalUserReferenceId === req.session.userId)) === null || _a === void 0 ? void 0 : _a.localUserReferenceId;
         return server;
     }
     async createServer(options, { req }) {
@@ -82,8 +94,8 @@ let ServerResolver = class ServerResolver {
             throw new Error('User not found');
         }
         const server = await Server_1.Server.create(Object.assign(Object.assign({}, options), { serverReferenceId: (0, uniqid_1.default)('s-'), owner })).save();
-        await LocalUser_1.LocalUser.create({
-            localId: (0, uniqid_1.default)('l-'),
+        const localUser = await LocalUser_1.LocalUser.create({
+            localUserReferenceId: (0, uniqid_1.default)('l-'),
             globalUser: owner,
             globalUserReferenceId: owner.globalUserId,
             server,
@@ -93,14 +105,15 @@ let ServerResolver = class ServerResolver {
             name: 'general',
             description: 'General channel',
             server,
-            channelId: (0, uniqid_1.default)('c-'),
+            channelReferenceId: (0, uniqid_1.default)('c-'),
             serverReferenceId: server.serverReferenceId,
         }).save();
         req.session.connectedServerId = server.serverReferenceId;
+        req.session.localId = localUser.localUserReferenceId;
+        req.session.localId = localUser.localUserReferenceId;
         return server;
     }
     async leaveServer({ req }) {
-        console.log(req.session.connectedServerId);
         const user = await LocalUser_1.LocalUser.findOne({
             where: [
                 {
@@ -152,6 +165,14 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], ServerResolver.prototype, "server", null);
+__decorate([
+    (0, type_graphql_1.Query)(() => Number),
+    (0, type_graphql_1.UseMiddleware)(isAuth_1.isAuth, isConnectedToServer_1.isConnectedToServer),
+    __param(0, (0, type_graphql_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], ServerResolver.prototype, "getServerUsers", null);
 __decorate([
     (0, type_graphql_1.Mutation)(() => Boolean),
     (0, type_graphql_1.UseMiddleware)([isAuth_1.isAuth]),

@@ -1,8 +1,9 @@
-import { Field, ID, ObjectType } from 'type-graphql'
-import { BaseEntity, Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
 import 'reflect-metadata'
-import { Server } from './Server'
+import { ChatBlock } from '../Entities/ChatBlock'
+import { Field, ID, ObjectType } from 'type-graphql'
+import { BaseEntity, Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
 import { GlobalUser } from './GlobalUser'
+import { Server } from './Server'
 @ObjectType()
 @Entity()
 export class LocalUser extends BaseEntity {
@@ -12,7 +13,7 @@ export class LocalUser extends BaseEntity {
 
   @Field()
   @Column({ nullable: false, unique: true })
-  localId: string
+  localUserReferenceId: string
 
   @Field()
   @Column({ nullable: false })
@@ -27,4 +28,7 @@ export class LocalUser extends BaseEntity {
 
   @ManyToOne(() => GlobalUser, user => user.localUser)
   globalUser: GlobalUser
+
+  @OneToMany(() => ChatBlock, chatBlock => chatBlock.user)
+  chatBlocks: ChatBlock[]
 }

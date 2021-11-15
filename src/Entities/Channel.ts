@@ -1,7 +1,16 @@
 import { Field, ID, ObjectType } from 'type-graphql'
-import { BaseEntity, Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
+import {
+  BaseEntity,
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm'
 import 'reflect-metadata'
 import { Server } from './Server'
+import { ChatRoom } from './ChatRoom'
 @ObjectType()
 @Entity()
 export class Channel extends BaseEntity {
@@ -11,7 +20,7 @@ export class Channel extends BaseEntity {
 
   @Field()
   @Column()
-  channelId: string
+  channelReferenceId: string
 
   @Field()
   @Column()
@@ -30,4 +39,8 @@ export class Channel extends BaseEntity {
 
   @ManyToOne(() => Server, server => server.channels, { onDelete: 'CASCADE' })
   server: Server
+
+  @OneToOne(() => ChatRoom)
+  @JoinColumn()
+  chatRoom: ChatRoom
 }

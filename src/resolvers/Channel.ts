@@ -13,6 +13,7 @@ import {
 import uniqid from 'uniqid'
 import { Channel } from '../Entities/Channel'
 import { Server } from '../Entities/Server'
+import { ChatRoom } from '../Entities/ChatRoom'
 import { CreateChannelInput } from '../inputTypes/Channel'
 import { MyContext } from '../types'
 
@@ -35,9 +36,9 @@ export class ChannelResolver {
 
   @Query(() => Channel)
   @UseMiddleware([isAuth, isConnectedToServer])
-  async channel(@Arg('channelId') channelId: string) {
+  async channel(@Arg('channelReferenceId') channelReferenceId: string) {
     try {
-      return await Channel.findOne({ where: { channelId } })
+      return await Channel.findOne({ where: { channelReferenceId } })
     } catch (error) {
       return error
     }
@@ -45,14 +46,19 @@ export class ChannelResolver {
 
   @Mutation(() => Channel)
   async connectToChannel(
-    @Arg('channelId') channelId: string,
+    @Arg('channelReferenceId') channelReferenceId: string,
     @Ctx() { req }: MyContext
   ): Promise<Channel> {
-    const channel = await Channel.findOne({ where: { channelId } })
+    const channel = await Channel.findOne({
+      relations: ['chatRoom'],
+      where: { channelReferenceId },
+    })
     if (!channel) {
       throw new Error('Channel not found')
     }
-    req.session.connectedChannelId = channel.channelId
+
+    req.session.connectedChannelId = channel.channelReferenceId
+    req.session.connectedChatRoomId = channel.chatRoom.chatRoomReferenceId
     return channel
   }
 
@@ -62,7 +68,6 @@ export class ChannelResolver {
     @Arg('options') options: CreateChannelInput,
     @Ctx() { req }: MyContext
   ): Promise<Channel> {
-    console.log('Hello')
     try {
       const serverReferenceId = req.session.connectedServerId
 
@@ -74,10 +79,29 @@ export class ChannelResolver {
 
       const channel = await Channel.create({
         ...options,
-        channelId: uniqid('c-'),
+        channelReferenceId: uniqid('c-'),
         serverReferenceId: server.serverReferenceId,
         server,
       }).save()
+
+      const chatRoom = await ChatRoom.create({
+        chatRoomReferenceId: uniqid('chat-'),
+        channelReferenceId: channel.channelReferenceId,
+        serverReferenceId: server.serverReferenceId,
+      }).save()
+
+
+      const channelWithChatRoom = await Channel.findOne({
+        where: { channelReferenceId: channel.channelReferenceId },
+      })
+
+      if (!channelWithChatRoom) {
+        throw new Error('Channel not found')
+      }
+
+      channelWithChatRoom.chatRoom = chatRoom
+
+      await channelWithChatRoom.save()
 
       return channel
     } catch (error) {
@@ -88,9 +112,9 @@ export class ChannelResolver {
 
   @Mutation(() => Boolean)
   @UseMiddleware([isAuth, isConnectedToServer])
-  async deleteChannel(@Arg('channelId') channelId: string) {
+  async deleteChannel(@Ctx() { req }: MyContext) {
     try {
-      await Channel.delete({ channelId })
+      await Channel.delete({ channelReferenceId: req.session.connectedChannelId })
       return true
     } catch (error) {
       return error
@@ -99,17 +123,18 @@ export class ChannelResolver {
 
   @Mutation(() => Channel)
   @UseMiddleware([isAuth, isConnectedToServer])
-  async editChannel(
-    @Arg('channelId') channelId: string,
-    @Arg('options') options: CreateChannelInput
-  ) {
+  async editChannel(@Ctx() { req }: MyContext, @Arg('options') options: CreateChannelInput) {
     try {
-      const channel = await Channel.findOne({ where: { channelId } })
+      const channel = await Channel.findOne({
+        where: { channelReferenceId: req.session.connectedChannelId },
+      })
       if (!channel) {
         throw new Error('Channel not found')
       }
-      await Channel.update({ channelId }, options)
-      return await Channel.findOne({ where: { channelId } })
+      await Channel.update({ channelReferenceId: req.session.connectedChannelId }, options)
+      return await Channel.findOne({
+        where: { channelReferenceId: req.session.connectedChannelId },
+      })
     } catch (error) {
       return error
     }

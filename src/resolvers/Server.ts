@@ -9,6 +9,7 @@ import { Server } from '../Entities/Server'
 import { CreateServerInput } from '../inputTypes/Server'
 import { MyContext } from '../types'
 import { getManager } from 'typeorm'
+import { isConnectedToServer } from '../middleware/isConnectedToServer'
 
 @Resolver(Server)
 export class ServerResolver {
@@ -38,6 +39,21 @@ export class ServerResolver {
     return server
   }
 
+  @Query(() => Number)
+  @UseMiddleware(isAuth, isConnectedToServer)
+  async getServerUsers(@Ctx() { req }: MyContext): Promise<Number> {
+    const server = await Server.findOne({
+      relations: ['users'],
+      where: { serverReferenceId: req.session.connectedServerId },
+    })
+
+    if (!server) {
+      throw new Error('Server not found')
+    }
+
+    return server.users.length
+  }
+
   @Mutation(() => Boolean)
   @UseMiddleware([isAuth])
   async joinServer(
@@ -57,17 +73,18 @@ export class ServerResolver {
         throw new Error('Server not found')
       }
 
-      await LocalUser.create({
-        localId: uniqid('l-'),
+      const localUser = await LocalUser.create({
+        localUserReferenceId: uniqid('l-'),
         globalUser: user,
         globalUserReferenceId: user.globalUserId,
         server,
         serverReferenceId: server.serverReferenceId,
       }).save()
 
+      req.session.localId = localUser.localUserReferenceId
+
       return true
     } catch (error) {
-      console.log(error)
       return error
     }
   }
@@ -78,14 +95,15 @@ export class ServerResolver {
     @Arg('serverReferenceId') serverReferenceId: string,
     @Ctx() { req }: MyContext
   ): Promise<Server> {
-    const server = await Server.findOne({ where: { serverReferenceId } })
+    const server = await Server.findOne({ relations: ['users'], where: { serverReferenceId } })
     if (!server) {
       throw new Error('Server not found')
     }
 
-    console.log(server.serverReferenceId)
-
     req.session.connectedServerId = server.serverReferenceId
+    req.session.localId = server.users.find(
+      user => user.globalUserReferenceId === req.session.userId
+    )?.localUserReferenceId!
     return server
   }
 
@@ -107,8 +125,8 @@ export class ServerResolver {
       owner,
     }).save()
 
-    await LocalUser.create({
-      localId: uniqid('l-'),
+    const localUser = await LocalUser.create({
+      localUserReferenceId: uniqid('l-'),
       globalUser: owner,
       globalUserReferenceId: owner.globalUserId,
       server,
@@ -119,11 +137,13 @@ export class ServerResolver {
       name: 'general',
       description: 'General channel',
       server,
-      channelId: uniqid('c-'),
+      channelReferenceId: uniqid('c-'),
       serverReferenceId: server.serverReferenceId,
     }).save()
 
     req.session.connectedServerId = server.serverReferenceId
+    req.session.localId = localUser.localUserReferenceId
+    req.session.localId = localUser.localUserReferenceId
 
     return server
   }
@@ -131,8 +151,6 @@ export class ServerResolver {
   @Mutation(() => Boolean)
   @UseMiddleware([isAuth])
   async leaveServer(@Ctx() { req }: MyContext): Promise<Boolean> {
-    console.log(req.session.connectedServerId)
-
     const user = await LocalUser.findOne({
       where: [
         {

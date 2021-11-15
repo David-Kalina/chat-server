@@ -19,6 +19,7 @@ exports.GlobalUserResolver = void 0;
 const Register_1 = require("../inputTypes/Register");
 const type_graphql_1 = require("type-graphql");
 const GlobalUser_1 = require("../Entities/GlobalUser");
+const Server_1 = require("../Entities/Server");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const uniqid_1 = __importDefault(require("uniqid"));
 const Login_1 = require("../inputTypes/Login");
@@ -26,6 +27,18 @@ const isAuth_1 = require("../middleware/isAuth");
 let GlobalUserResolver = class GlobalUserResolver {
     hello() {
         return 'Hello World!';
+    }
+    async me({ req }) {
+        try {
+            const user = await GlobalUser_1.GlobalUser.findOne({ where: { globalUserId: req.session.userId } });
+            if (!user) {
+                return null;
+            }
+            return user;
+        }
+        catch (error) {
+            return null;
+        }
     }
     async getOnlineStatus({ req }) {
         if (!req.session.userId) {
@@ -49,7 +62,6 @@ let GlobalUserResolver = class GlobalUserResolver {
             return new Promise((resolve, reject) => {
                 req.session.destroy(err => {
                     if (err) {
-                        console.log(err);
                         reject(false);
                     }
                     res.clearCookie('qid');
@@ -58,14 +70,19 @@ let GlobalUserResolver = class GlobalUserResolver {
             });
         }
         catch (error) {
-            console.log(error);
             return error;
         }
     }
     async register(options, { req }) {
         try {
             const user = await GlobalUser_1.GlobalUser.create(Object.assign(Object.assign({}, options), { globalUserId: (0, uniqid_1.default)('global-'), password: await bcryptjs_1.default.hash(options.password, 12) })).save();
+            const server = await Server_1.Server.create({
+                serverReferenceId: (0, uniqid_1.default)('s-'),
+                name: 'general',
+                owner: user,
+            }).save();
             req.session.userId = user.globalUserId;
+            req.session.connectedServerId = server.serverReferenceId;
             req.session.onlineStatus = 'online';
             return user;
         }
@@ -98,6 +115,14 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], GlobalUserResolver.prototype, "hello", null);
+__decorate([
+    (0, type_graphql_1.Query)(() => GlobalUser_1.GlobalUser),
+    (0, type_graphql_1.UseMiddleware)(isAuth_1.isAuth),
+    __param(0, (0, type_graphql_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], GlobalUserResolver.prototype, "me", null);
 __decorate([
     (0, type_graphql_1.Query)(() => String),
     (0, type_graphql_1.UseMiddleware)(isAuth_1.isAuth),

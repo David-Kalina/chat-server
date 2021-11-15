@@ -14,6 +14,7 @@ const type_graphql_1 = require("type-graphql");
 const typeorm_1 = require("typeorm");
 require("reflect-metadata");
 const Server_1 = require("./Server");
+const ChatRoom_1 = require("./ChatRoom");
 let Channel = class Channel extends typeorm_1.BaseEntity {
 };
 __decorate([
@@ -25,7 +26,7 @@ __decorate([
     (0, type_graphql_1.Field)(),
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
-], Channel.prototype, "channelId", void 0);
+], Channel.prototype, "channelReferenceId", void 0);
 __decorate([
     (0, type_graphql_1.Field)(),
     (0, typeorm_1.Column)(),
@@ -49,6 +50,11 @@ __decorate([
     (0, typeorm_1.ManyToOne)(() => Server_1.Server, server => server.channels, { onDelete: 'CASCADE' }),
     __metadata("design:type", Server_1.Server)
 ], Channel.prototype, "server", void 0);
+__decorate([
+    (0, typeorm_1.OneToOne)(() => ChatRoom_1.ChatRoom),
+    (0, typeorm_1.JoinColumn)(),
+    __metadata("design:type", ChatRoom_1.ChatRoom)
+], Channel.prototype, "chatRoom", void 0);
 Channel = __decorate([
     (0, type_graphql_1.ObjectType)(),
     (0, typeorm_1.Entity)()

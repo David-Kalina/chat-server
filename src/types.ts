@@ -12,8 +12,10 @@ export type MyContext = {
   req: Request & {
     session: Session & {
       userId: string
+      localId: string
       connectedServerId: string
       connectedChannelId: string
+      connectedChatRoomId: string
       onlineStatus: string
     }
   }

@@ -2,6 +2,7 @@ import { RegisterInput } from '../inputTypes/Register'
 import { MyContext } from 'src/types'
 import { Arg, Ctx, Mutation, Query, Resolver, UseMiddleware } from 'type-graphql'
 import { GlobalUser } from '../Entities/GlobalUser'
+import { Server } from '../Entities/Server'
 import bcrypt from 'bcryptjs'
 import uniqid from 'uniqid'
 import { LoginInput } from '../inputTypes/Login'
@@ -12,6 +13,20 @@ export class GlobalUserResolver {
   @Query(() => String)
   hello() {
     return 'Hello World!'
+  }
+
+  @Query(() => GlobalUser)
+  @UseMiddleware(isAuth)
+  async me(@Ctx() { req }: MyContext): Promise<GlobalUser | null> {
+    try {
+      const user = await GlobalUser.findOne({ where: { globalUserId: req.session.userId } })
+      if (!user) {
+        return null
+      }
+      return user
+    } catch (error) {
+      return null
+    }
   }
 
   @Query(() => String)
@@ -47,7 +62,6 @@ export class GlobalUserResolver {
       return new Promise((resolve, reject) => {
         req.session!.destroy(err => {
           if (err) {
-            console.log(err)
             reject(false)
           }
           res.clearCookie('qid')
@@ -55,7 +69,6 @@ export class GlobalUserResolver {
         })
       })
     } catch (error) {
-      console.log(error)
       return error
     }
   }
@@ -72,7 +85,14 @@ export class GlobalUserResolver {
         password: await bcrypt.hash(options.password, 12),
       }).save()
 
+      const server = await Server.create({
+        serverReferenceId: uniqid('s-'),
+        name: 'general',
+        owner: user,
+      }).save()
+
       req.session.userId = user.globalUserId
+      req.session.connectedServerId = server.serverReferenceId
       req.session.onlineStatus = 'online'
 
       return user
