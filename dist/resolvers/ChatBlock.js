@@ -13,35 +13,38 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChatBlockResolver = void 0;
-const ChatBlock_1 = require("../Entities/ChatBlock");
 const type_graphql_1 = require("type-graphql");
+const ChatBlock_1 = require("../Entities/ChatBlock");
 let ChatBlockResolver = class ChatBlockResolver {
-    async chatBlocks({ req }) {
+    async chatBlocks(channelReferenceId) {
         const chatBlocks = await ChatBlock_1.ChatBlock.find({
             relations: ['messages', 'user'],
-            order: { createdAt: 'ASC' },
+            where: {
+                channelReferenceId,
+            },
         });
-        console.log(chatBlocks);
-        const mapped = chatBlocks.map(chatBlock => {
-            if (chatBlock.userReferenceId === req.session.localId) {
-                chatBlock.isMine = true;
-            }
-            else {
-                chatBlock.isMine = false;
-            }
-            return chatBlock;
-        });
-        console.log(mapped);
-        return mapped;
+        return chatBlocks;
+    }
+    isMine(parent, { req }) {
+        console.log(`CHATBLOCK USER ID: ${parent.userReferenceId}, LOGGED IN USER LOCAL ID: ${req.session.localId}`);
+        return req.session.localId === parent.userReferenceId;
     }
 };
 __decorate([
     (0, type_graphql_1.Query)(() => [ChatBlock_1.ChatBlock], { nullable: true }),
-    __param(0, (0, type_graphql_1.Ctx)()),
+    __param(0, (0, type_graphql_1.Arg)('channelReferenceId')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], ChatBlockResolver.prototype, "chatBlocks", null);
+__decorate([
+    (0, type_graphql_1.FieldResolver)(() => Boolean),
+    __param(0, (0, type_graphql_1.Root)()),
+    __param(1, (0, type_graphql_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [ChatBlock_1.ChatBlock, Object]),
+    __metadata("design:returntype", void 0)
+], ChatBlockResolver.prototype, "isMine", null);
 ChatBlockResolver = __decorate([
     (0, type_graphql_1.Resolver)(ChatBlock_1.ChatBlock)
 ], ChatBlockResolver);

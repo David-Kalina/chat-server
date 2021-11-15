@@ -10,6 +10,8 @@ import { CreateServerInput } from '../inputTypes/Server'
 import { MyContext } from '../types'
 import { getManager } from 'typeorm'
 import { isConnectedToServer } from '../middleware/isConnectedToServer'
+import { ChatRoom } from '../Entities/ChatRoom'
+import { ServerResponse } from '../objectTypes/ServerResponse'
 
 @Resolver(Server)
 export class ServerResolver {
@@ -89,30 +91,45 @@ export class ServerResolver {
     }
   }
 
-  @Mutation(() => Server)
+  @Mutation(() => ServerResponse)
   @UseMiddleware([isAuth, isAllowedToConnectToServer])
   async connectToServer(
     @Arg('serverReferenceId') serverReferenceId: string,
     @Ctx() { req }: MyContext
-  ): Promise<Server> {
-    const server = await Server.findOne({ relations: ['users'], where: { serverReferenceId } })
-    if (!server) {
-      throw new Error('Server not found')
-    }
+  ): Promise<ServerResponse> {
+    try {
+      const server = await Server.findOne({
+        relations: ['users', 'channels'],
+        where: { serverReferenceId },
+      })
+      if (!server) {
+        throw new Error('Server not found')
+      }
 
-    req.session.connectedServerId = server.serverReferenceId
-    req.session.localId = server.users.find(
-      user => user.globalUserReferenceId === req.session.userId
-    )?.localUserReferenceId!
-    return server
+      req.session.connectedServerId = server.serverReferenceId
+      req.session.connectedChannelId = server.channels[0]?.channelReferenceId
+
+      req.session.localId = server.users.find(
+        user =>
+          user.globalUserReferenceId === req.session.userId &&
+          user.serverReferenceId === serverReferenceId
+      )?.localUserReferenceId!
+
+      console.log(server.channels[0]?.channelReferenceId)
+
+      return { server, channelReferenceId: server.channels[0]?.channelReferenceId || null }
+    } catch (error) {
+      console.log(error)
+      return error
+    }
   }
 
-  @Mutation(() => Server)
+  @Mutation(() => ServerResponse)
   @UseMiddleware([isAuth])
   async createServer(
     @Arg('options') options: CreateServerInput,
     @Ctx() { req }: MyContext
-  ): Promise<Server> {
+  ): Promise<ServerResponse> {
     const owner = await GlobalUser.findOne({ where: { globalUserId: req.session.userId } })
 
     if (!owner) {
@@ -133,7 +150,7 @@ export class ServerResolver {
       serverReferenceId: server.serverReferenceId,
     }).save()
 
-    await Channel.create({
+    const channel = await Channel.create({
       name: 'general',
       description: 'General channel',
       server,
@@ -141,11 +158,30 @@ export class ServerResolver {
       serverReferenceId: server.serverReferenceId,
     }).save()
 
+    const chatRoom = await ChatRoom.create({
+      chatRoomReferenceId: uniqid('chat-'),
+      channelReferenceId: channel.channelReferenceId,
+      serverReferenceId: server.serverReferenceId,
+    }).save()
+
+    const channelWithChatRoom = await Channel.findOne({
+      where: { channelReferenceId: channel.channelReferenceId },
+    })
+
+    if (!channelWithChatRoom) {
+      throw new Error('Channel not found')
+    }
+
+    channelWithChatRoom.chatRoom = chatRoom
+
+    await channelWithChatRoom.save()
+
     req.session.connectedServerId = server.serverReferenceId
     req.session.localId = localUser.localUserReferenceId
     req.session.localId = localUser.localUserReferenceId
+    req.session.connectedChatRoomId = chatRoom.chatRoomReferenceId
 
-    return server
+    return { server, channelReferenceId: channel.channelReferenceId }
   }
 
   @Mutation(() => Boolean)

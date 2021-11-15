@@ -31,15 +31,17 @@ export class MessageResolver {
         const message = await Message.create({
           text,
           chatBlockReferenceId: mostRecentChatBlock.chatBlockReferenceId,
+          chatBlock: mostRecentChatBlock,
         }).save()
 
+        console.log('mostRecentExists')
         mostRecentChatBlock.messages.push(message)
         await mostRecentChatBlock.save()
         return true
       } else {
         const chatBlock = await ChatBlock.create({
           user,
-          channelReferenceId: req.session.connectedChatRoomId,
+          channelReferenceId: req.session.connectedChannelId,
           serverReferenceId: req.session.connectedServerId,
           chatRoomReferenceId: req.session.connectedChatRoomId,
           userReferenceId: req.session.localId,
@@ -47,12 +49,14 @@ export class MessageResolver {
         }).save()
 
         const addToChatBlock = await ChatBlock.findOne({
+          relations: ['messages', 'user'],
           where: { chatBlockReferenceId: chatBlock.chatBlockReferenceId },
         })
 
         const message = await Message.create({
           text,
           chatBlockReferenceId: addToChatBlock?.chatBlockReferenceId,
+          chatBlock: addToChatBlock,
         }).save()
 
         addToChatBlock?.messages.push(message)

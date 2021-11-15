@@ -41,7 +41,9 @@ let MessageResolver = class MessageResolver {
                 const message = await Message_1.Message.create({
                     text,
                     chatBlockReferenceId: mostRecentChatBlock.chatBlockReferenceId,
+                    chatBlock: mostRecentChatBlock,
                 }).save();
+                console.log('mostRecentExists');
                 mostRecentChatBlock.messages.push(message);
                 await mostRecentChatBlock.save();
                 return true;
@@ -49,18 +51,20 @@ let MessageResolver = class MessageResolver {
             else {
                 const chatBlock = await ChatBlock_1.ChatBlock.create({
                     user,
-                    channelReferenceId: req.session.connectedChatRoomId,
+                    channelReferenceId: req.session.connectedChannelId,
                     serverReferenceId: req.session.connectedServerId,
                     chatRoomReferenceId: req.session.connectedChatRoomId,
                     userReferenceId: req.session.localId,
                     chatBlockReferenceId: (0, uniqid_1.default)('block-'),
                 }).save();
                 const addToChatBlock = await ChatBlock_1.ChatBlock.findOne({
+                    relations: ['messages', 'user'],
                     where: { chatBlockReferenceId: chatBlock.chatBlockReferenceId },
                 });
                 const message = await Message_1.Message.create({
                     text,
                     chatBlockReferenceId: addToChatBlock === null || addToChatBlock === void 0 ? void 0 : addToChatBlock.chatBlockReferenceId,
+                    chatBlock: addToChatBlock,
                 }).save();
                 addToChatBlock === null || addToChatBlock === void 0 ? void 0 : addToChatBlock.messages.push(message);
                 await chatBlock.save();

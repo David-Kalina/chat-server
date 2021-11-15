@@ -90,7 +90,6 @@ export class ChannelResolver {
         serverReferenceId: server.serverReferenceId,
       }).save()
 
-
       const channelWithChatRoom = await Channel.findOne({
         where: { channelReferenceId: channel.channelReferenceId },
       })

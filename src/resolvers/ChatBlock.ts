@@ -1,29 +1,27 @@
+import { Arg, Ctx, FieldResolver, Query, Resolver, Root } from 'type-graphql'
 import { ChatBlock } from '../Entities/ChatBlock'
-import { Ctx, Query, Resolver } from 'type-graphql'
 import { MyContext } from '../types'
 
 @Resolver(ChatBlock)
 export class ChatBlockResolver {
   @Query(() => [ChatBlock], { nullable: true })
-  async chatBlocks(@Ctx() { req }: MyContext) {
+  async chatBlocks(@Arg('channelReferenceId') channelReferenceId: string) {
+    // ! Use query builder to fetch proper order
     const chatBlocks = await ChatBlock.find({
       relations: ['messages', 'user'],
-      order: { createdAt: 'ASC' },
+      where: {
+        channelReferenceId,
+      },
     })
 
-    console.log(chatBlocks)
+    return chatBlocks
+  }
 
-    const mapped = chatBlocks.map(chatBlock => {
-      if (chatBlock.userReferenceId === req.session.localId) {
-        chatBlock.isMine = true
-      } else {
-        chatBlock.isMine = false
-      }
-      return chatBlock
-    })
-
-    console.log(mapped)
-
-    return mapped
+  @FieldResolver(() => Boolean)
+  isMine(@Root() parent: ChatBlock, @Ctx() { req }: MyContext) {
+    console.log(
+      `CHATBLOCK USER ID: ${parent.userReferenceId}, LOGGED IN USER LOCAL ID: ${req.session.localId}`
+    )
+    return req.session.localId === parent.userReferenceId
   }
 }

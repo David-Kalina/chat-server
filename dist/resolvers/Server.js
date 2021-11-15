@@ -27,6 +27,8 @@ const Server_1 = require("../Entities/Server");
 const Server_2 = require("../inputTypes/Server");
 const typeorm_1 = require("typeorm");
 const isConnectedToServer_1 = require("../middleware/isConnectedToServer");
+const ChatRoom_1 = require("../Entities/ChatRoom");
+const ServerResponse_1 = require("../objectTypes/ServerResponse");
 let ServerResolver = class ServerResolver {
     async servers({ req }) {
         const entityManager = (0, typeorm_1.getManager)();
@@ -79,14 +81,26 @@ let ServerResolver = class ServerResolver {
         }
     }
     async connectToServer(serverReferenceId, { req }) {
-        var _a;
-        const server = await Server_1.Server.findOne({ relations: ['users'], where: { serverReferenceId } });
-        if (!server) {
-            throw new Error('Server not found');
+        var _a, _b, _c, _d;
+        try {
+            const server = await Server_1.Server.findOne({
+                relations: ['users', 'channels'],
+                where: { serverReferenceId },
+            });
+            if (!server) {
+                throw new Error('Server not found');
+            }
+            req.session.connectedServerId = server.serverReferenceId;
+            req.session.connectedChannelId = (_a = server.channels[0]) === null || _a === void 0 ? void 0 : _a.channelReferenceId;
+            req.session.localId = (_b = server.users.find(user => user.globalUserReferenceId === req.session.userId &&
+                user.serverReferenceId === serverReferenceId)) === null || _b === void 0 ? void 0 : _b.localUserReferenceId;
+            console.log((_c = server.channels[0]) === null || _c === void 0 ? void 0 : _c.channelReferenceId);
+            return { server, channelReferenceId: ((_d = server.channels[0]) === null || _d === void 0 ? void 0 : _d.channelReferenceId) || null };
         }
-        req.session.connectedServerId = server.serverReferenceId;
-        req.session.localId = (_a = server.users.find(user => user.globalUserReferenceId === req.session.userId)) === null || _a === void 0 ? void 0 : _a.localUserReferenceId;
-        return server;
+        catch (error) {
+            console.log(error);
+            return error;
+        }
     }
     async createServer(options, { req }) {
         const owner = await GlobalUser_1.GlobalUser.findOne({ where: { globalUserId: req.session.userId } });
@@ -101,17 +115,31 @@ let ServerResolver = class ServerResolver {
             server,
             serverReferenceId: server.serverReferenceId,
         }).save();
-        await Channel_1.Channel.create({
+        const channel = await Channel_1.Channel.create({
             name: 'general',
             description: 'General channel',
             server,
             channelReferenceId: (0, uniqid_1.default)('c-'),
             serverReferenceId: server.serverReferenceId,
         }).save();
+        const chatRoom = await ChatRoom_1.ChatRoom.create({
+            chatRoomReferenceId: (0, uniqid_1.default)('chat-'),
+            channelReferenceId: channel.channelReferenceId,
+            serverReferenceId: server.serverReferenceId,
+        }).save();
+        const channelWithChatRoom = await Channel_1.Channel.findOne({
+            where: { channelReferenceId: channel.channelReferenceId },
+        });
+        if (!channelWithChatRoom) {
+            throw new Error('Channel not found');
+        }
+        channelWithChatRoom.chatRoom = chatRoom;
+        await channelWithChatRoom.save();
         req.session.connectedServerId = server.serverReferenceId;
         req.session.localId = localUser.localUserReferenceId;
         req.session.localId = localUser.localUserReferenceId;
-        return server;
+        req.session.connectedChatRoomId = chatRoom.chatRoomReferenceId;
+        return { server, channelReferenceId: channel.channelReferenceId };
     }
     async leaveServer({ req }) {
         const user = await LocalUser_1.LocalUser.findOne({
@@ -183,7 +211,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ServerResolver.prototype, "joinServer", null);
 __decorate([
-    (0, type_graphql_1.Mutation)(() => Server_1.Server),
+    (0, type_graphql_1.Mutation)(() => ServerResponse_1.ServerResponse),
     (0, type_graphql_1.UseMiddleware)([isAuth_1.isAuth, isAllowedToConnectToServer_1.isAllowedToConnectToServer]),
     __param(0, (0, type_graphql_1.Arg)('serverReferenceId')),
     __param(1, (0, type_graphql_1.Ctx)()),
@@ -192,7 +220,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ServerResolver.prototype, "connectToServer", null);
 __decorate([
-    (0, type_graphql_1.Mutation)(() => Server_1.Server),
+    (0, type_graphql_1.Mutation)(() => ServerResponse_1.ServerResponse),
     (0, type_graphql_1.UseMiddleware)([isAuth_1.isAuth]),
     __param(0, (0, type_graphql_1.Arg)('options')),
     __param(1, (0, type_graphql_1.Ctx)()),

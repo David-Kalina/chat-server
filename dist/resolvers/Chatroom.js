@@ -21,7 +21,7 @@ const type_graphql_1 = require("type-graphql");
 let ChatRoomResolver = class ChatRoomResolver {
     async chatRoom({ req }) {
         return await ChatRoom_1.ChatRoom.findOne({
-            where: { chatRoomReferenceId: req.session.connectedChatRoomId },
+            where: { channelReferenceId: req.session.connectedChannelId },
         });
     }
 };

@@ -11,7 +11,7 @@ export class ChatRoomResolver {
   @UseMiddleware(isAuth, isConnectedToServer, isConnectedToChannel)
   async chatRoom(@Ctx() { req }: MyContext) {
     return await ChatRoom.findOne({
-      where: { chatRoomReferenceId: req.session.connectedChatRoomId },
+      where: { channelReferenceId: req.session.connectedChannelId },
     })
   }
 }
