@@ -34,7 +34,6 @@ export class MessageResolver {
           chatBlock: mostRecentChatBlock,
         }).save()
 
-        console.log('mostRecentExists')
         mostRecentChatBlock.messages.push(message)
         await mostRecentChatBlock.save()
         return true
@@ -45,6 +44,7 @@ export class MessageResolver {
           serverReferenceId: req.session.connectedServerId,
           chatRoomReferenceId: req.session.connectedChatRoomId,
           userReferenceId: req.session.localId,
+          isMine: req.session.localId === user?.localUserReferenceId,
           chatBlockReferenceId: uniqid('block-'),
         }).save()
 
@@ -65,7 +65,6 @@ export class MessageResolver {
         return true
       }
     } catch (error) {
-      console.log(error)
       return error
     }
   }

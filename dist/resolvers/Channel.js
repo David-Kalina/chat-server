@@ -24,6 +24,7 @@ const Channel_1 = require("../Entities/Channel");
 const Server_1 = require("../Entities/Server");
 const ChatRoom_1 = require("../Entities/ChatRoom");
 const Channel_2 = require("../inputTypes/Channel");
+const ConnectResponse_1 = require("../objectTypes/ConnectResponse");
 let ChannelResolver = class ChannelResolver {
     async channels(serverReferenceId) {
         try {
@@ -45,16 +46,22 @@ let ChannelResolver = class ChannelResolver {
         }
     }
     async connectToChannel(channelReferenceId, { req }) {
-        const channel = await Channel_1.Channel.findOne({
-            relations: ['chatRoom'],
-            where: { channelReferenceId },
-        });
-        if (!channel) {
-            throw new Error('Channel not found');
+        try {
+            const channel = await Channel_1.Channel.findOne({
+                relations: ['chatRoom'],
+                where: { channelReferenceId },
+            });
+            if (!channel) {
+                throw new Error('Channel not found');
+            }
+            req.session.connectedChannelId = channel.channelReferenceId;
+            req.session.connectedChatRoomId = channel.chatRoom.chatRoomReferenceId;
+            return { channel, localUserId: req.session.localId };
         }
-        req.session.connectedChannelId = channel.channelReferenceId;
-        req.session.connectedChatRoomId = channel.chatRoom.chatRoomReferenceId;
-        return channel;
+        catch (error) {
+            console.log(error);
+            return error;
+        }
     }
     async createChannel(options, { req }) {
         try {
@@ -135,7 +142,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ChannelResolver.prototype, "channel", null);
 __decorate([
-    (0, type_graphql_1.Mutation)(() => Channel_1.Channel),
+    (0, type_graphql_1.Mutation)(() => ConnectResponse_1.ConnectResponse),
     __param(0, (0, type_graphql_1.Arg)('channelReferenceId')),
     __param(1, (0, type_graphql_1.Ctx)()),
     __metadata("design:type", Function),

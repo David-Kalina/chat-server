@@ -115,8 +115,6 @@ export class ServerResolver {
           user.serverReferenceId === serverReferenceId
       )?.localUserReferenceId!
 
-      console.log(server.channels[0]?.channelReferenceId)
-
       return { server, channelReferenceId: server.channels[0]?.channelReferenceId || null }
     } catch (error) {
       console.log(error)

@@ -8,6 +8,9 @@ export const isAllowedToConnectToServer: MiddlewareFn<MyContext> = async (
 ) => {
   const localUser = await Server.findOne({
     relations: ['users'],
+    where: {
+      serverReferenceId: args.serverReferenceId,
+    },
   }).then(u => u?.users.find(u => u.globalUserReferenceId === context.req.session.userId))
 
   if (!localUser) {

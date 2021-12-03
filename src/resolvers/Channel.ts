@@ -16,6 +16,7 @@ import { Server } from '../Entities/Server'
 import { ChatRoom } from '../Entities/ChatRoom'
 import { CreateChannelInput } from '../inputTypes/Channel'
 import { MyContext } from '../types'
+import { ConnectResponse } from '../objectTypes/ConnectResponse'
 
 @Resolver(Channel)
 export class ChannelResolver {
@@ -44,22 +45,28 @@ export class ChannelResolver {
     }
   }
 
-  @Mutation(() => Channel)
+  @Mutation(() => ConnectResponse)
   async connectToChannel(
     @Arg('channelReferenceId') channelReferenceId: string,
     @Ctx() { req }: MyContext
-  ): Promise<Channel> {
-    const channel = await Channel.findOne({
-      relations: ['chatRoom'],
-      where: { channelReferenceId },
-    })
-    if (!channel) {
-      throw new Error('Channel not found')
-    }
+  ): Promise<ConnectResponse> {
+    try {
+      const channel = await Channel.findOne({
+        relations: ['chatRoom'],
+        where: { channelReferenceId },
+      })
 
-    req.session.connectedChannelId = channel.channelReferenceId
-    req.session.connectedChatRoomId = channel.chatRoom.chatRoomReferenceId
-    return channel
+      if (!channel) {
+        throw new Error('Channel not found')
+      }
+
+      req.session.connectedChannelId = channel.channelReferenceId
+      req.session.connectedChatRoomId = channel.chatRoom.chatRoomReferenceId
+      return { channel, localUserId: req.session.localId }
+    } catch (error) {
+      console.log(error)
+      return error
+    }
   }
 
   @Mutation(() => Channel)

@@ -43,7 +43,6 @@ let MessageResolver = class MessageResolver {
                     chatBlockReferenceId: mostRecentChatBlock.chatBlockReferenceId,
                     chatBlock: mostRecentChatBlock,
                 }).save();
-                console.log('mostRecentExists');
                 mostRecentChatBlock.messages.push(message);
                 await mostRecentChatBlock.save();
                 return true;
@@ -55,6 +54,7 @@ let MessageResolver = class MessageResolver {
                     serverReferenceId: req.session.connectedServerId,
                     chatRoomReferenceId: req.session.connectedChatRoomId,
                     userReferenceId: req.session.localId,
+                    isMine: req.session.localId === (user === null || user === void 0 ? void 0 : user.localUserReferenceId),
                     chatBlockReferenceId: (0, uniqid_1.default)('block-'),
                 }).save();
                 const addToChatBlock = await ChatBlock_1.ChatBlock.findOne({
@@ -72,7 +72,6 @@ let MessageResolver = class MessageResolver {
             }
         }
         catch (error) {
-            console.log(error);
             return error;
         }
     }

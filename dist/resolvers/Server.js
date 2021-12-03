@@ -81,7 +81,7 @@ let ServerResolver = class ServerResolver {
         }
     }
     async connectToServer(serverReferenceId, { req }) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c;
         try {
             const server = await Server_1.Server.findOne({
                 relations: ['users', 'channels'],
@@ -94,8 +94,7 @@ let ServerResolver = class ServerResolver {
             req.session.connectedChannelId = (_a = server.channels[0]) === null || _a === void 0 ? void 0 : _a.channelReferenceId;
             req.session.localId = (_b = server.users.find(user => user.globalUserReferenceId === req.session.userId &&
                 user.serverReferenceId === serverReferenceId)) === null || _b === void 0 ? void 0 : _b.localUserReferenceId;
-            console.log((_c = server.channels[0]) === null || _c === void 0 ? void 0 : _c.channelReferenceId);
-            return { server, channelReferenceId: ((_d = server.channels[0]) === null || _d === void 0 ? void 0 : _d.channelReferenceId) || null };
+            return { server, channelReferenceId: ((_c = server.channels[0]) === null || _c === void 0 ? void 0 : _c.channelReferenceId) || null };
         }
         catch (error) {
             console.log(error);

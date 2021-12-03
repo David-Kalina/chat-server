@@ -1,0 +1,1 @@
+{"version":3,"file":"ConnectResponse.js","sourceRoot":"","sources":["../../src/objectTypes/ConnectResponse.ts"],"names":[],"mappings":";;;;;;;;;;;;AAAA,iDAA6C;AAC7C,+CAAgD;AAGhD,IAAa,eAAe,GAA5B,MAAa,eAAe;CAM3B,CAAA;AAJC;IADC,IAAA,oBAAK,EAAC,GAAG,EAAE,CAAC,iBAAO,CAAC;8BACZ,iBAAO;gDAAA;AAGhB;IADC,IAAA,oBAAK,GAAE;;oDACW;AALR,eAAe;IAD3B,IAAA,yBAAU,GAAE;GACA,eAAe,CAM3B;AANY,0CAAe"}
